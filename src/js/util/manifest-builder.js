@@ -1,93 +1,77 @@
 const build = (target, version) => {
-
-    var manifest = {};
+    const manifest = {};
 
     // Common properties
-    manifest.manifest_version = 2
-    manifest.name = "Better Crm Power Pane"
-    manifest.short_name = "Better Crm Power Pane"
-    manifest.version = version
-    manifest.description = "Better Crm Power Pane is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms."
-    manifest.content_security_policy = "script-src 'self'; object-src 'self'"
+    manifest.manifest_version = 3; // Updated to V3
+    manifest.name = "Better Crm Power Pane";
+    manifest.short_name = "Better Crm Power Pane";
+    manifest.version = version;
+    manifest.description = "Better Crm Power Pane is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.";
+    manifest.icons = {
+        32: "img/icon-32.png",
+        48: "img/icon-48.png",
+        64: "img/icon-64.png",
+        128: "img/icon-128.png"
+    };
 
-    manifest.browser_action = {};
-    manifest.browser_action.default_title = "Better Crm Power Pane"
+    // Content Scripts
+    manifest.content_scripts = [
+        {
+            run_at: "document_end",
+            matches: ["<all_urls>"],
+            js: ["js/inject.js"],
+            css: ["ui/css/pane.css"]
+        }
+    ];
 
-    manifest.icons = {};
-    manifest.icons[32] = "img/icon-32.png"
-    manifest.icons[48] = "img/icon-48.png"
-    manifest.icons[64] = "img/icon-64.png"
-    manifest.icons[128] = "img/icon-128.png"
+    // Permissions
+    manifest.permissions = [
+        "identity",
+        "tabs",
+        "activeTab",
+        "storage"
+    ];
 
-    manifest.content_scripts = []
-    manifest.content_scripts.push({});
+    // Host Permissions (required in MV3 for HTTP/HTTPS URLs)
+    manifest.host_permissions = ["http://*/*", "https://*/*"];
 
-    manifest.content_scripts[0].run_at = "document_end"
+    // Web Accessible Resources
+    manifest.web_accessible_resources = [
+        {
+            resources: ["ui/*", "img/*"],
+            matches: ["<all_urls>"]
+        }
+    ];
 
-    manifest.content_scripts[0].matches = [];
-    manifest.content_scripts[0].matches.push("<all_urls>");
+    // Background Service Worker
+    manifest.background = {
+        service_worker: "js/background.js", // Updated to use service worker
+        type: "module" // Optional but recommended for modern JavaScript
+    };
 
-    manifest.content_scripts[0].js = [];
-    manifest.content_scripts[0].js.push("js/inject.js")
+    // Browser Action (renamed to `action` in MV3)
+    manifest.action = {
+        default_title: "Better Crm Power Pane",
+        default_icon: "img/icon-48.png"
+    };
 
-    manifest.content_scripts[0].css = [];
-    manifest.content_scripts[0].css.push("ui/css/pane.css")
-
-    manifest.permissions = []
-    manifest.permissions.push("identity");
-    manifest.permissions.push("tabs");
-    manifest.permissions.push("activeTab");
-    manifest.permissions.push("storage");
-    manifest.permissions.push("http://*/*");
-    manifest.permissions.push("https://*/*");
-
-    manifest.web_accessible_resources = [];
-    manifest.web_accessible_resources.push("ui/*");
-    manifest.web_accessible_resources.push("img/*");
-
-    manifest.background = {};
-    manifest.background.scripts = ["js/background.js"];
-
-
-    // Chrome properties
-    if (target === 'chrome') {
-        manifest.background.persistent = false;
-        manifest.options_page = "ui/options.html"
-        manifest.browser_action.default_icon = "img/icon-48.png"
-    }
-
-    // Firefox properties
-    if (target === 'firefox') {
+    // Options Page
+    if (target === "chrome" || target === "edge-chromium" || target === "edge") {
+        manifest.options_page = "ui/options.html";
+    } else if (target === "firefox") {
         manifest.options_ui = {
             page: "ui/options.html",
-            browser_style: true,
-            //open_in_tab: true
-        }
-
-        manifest.browser_action.default_icon = {};
-        manifest.browser_action.default_icon[32] = "img/icon-32.png"
+            browser_style: true
+        };
     }
 
-    // Edge properties
-    if (target === 'edge') {
-        manifest.background.persistent = false;
+    // Edge-specific properties
+    if (target === "edge") {
         manifest.author = "Oguzhan Can and Onur Menal";
-        manifest.options_page = "ui/options.html"
-        manifest.browser_action.default_icon = {};
-        manifest.browser_action.default_icon[30] = "img/icon-32.png"
-        manifest.browser_action.default_icon[35] = "img/icon-32.png"
     }
 
-    // Chrome properties
-    if (target === 'edge-chromium') {
-        manifest.background.persistent = false;
-        manifest.options_page = "ui/options.html"
-        manifest.browser_action.default_icon = "img/icon-48.png"
-    }
-
-    // TODO: Add firefox and edge-specific conversions.
     return manifest;
-}
+};
 
 module.exports = {
     build: build
