@@ -1,6 +1,10 @@
+## This extension was originally created by Onur Menal. I updated the Node.js packages to their latest versions to ensure compatibility with modern environments.
+
+
 # CRM Power Pane
 [![Build Status](https://dev.azure.com/powerpane/Dynamics%20365%20Power%20Pane/_apis/build/status/crm-power-pane-ci)](https://dev.azure.com/powerpane/Dynamics%20365%20Power%20Pane/_build/latest?definitionId=1)
 [![Gitter](https://badges.gitter.im/power-pane/community.svg)](https://gitter.im/power-pane/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 
 The CRM Power Pane is a helper tool designed to integrate with Microsoft Dynamics 365 application and allow you to manipulate forms or perform actions faster throughout the Microsoft Dynamics 365 application.
 
@@ -20,14 +24,6 @@ Click the CRM Power Pane icon next to the Microsoft Dynamics 365 logo, and selec
 [![Chrome Web Store - Reviews](https://img.shields.io/chrome-web-store/rating-count/eadknamngiibbmjdfokmppfooolhdidc.svg)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc/reviews)
 
 [![Dynamics CRM Power Pane on Chrome Web Store](./docs/assets/chrome-web-store-badge.png)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc)
-
-### Mozilla Firefox
-[![Mozilla Add-on](https://img.shields.io/amo/v/dynamics-crm-power-pane.svg)](https://addons.mozilla.org/en-US/firefox/addon/dynamics-crm-power-pane/)
-[![Mozilla Add-on - Users](https://img.shields.io/amo/users/dynamics-crm-power-pane.svg)](https://addons.mozilla.org/en-US/firefox/addon/dynamics-crm-power-pane/)
-[![Mozilla Add-on - Rating](https://img.shields.io/amo/rating/dynamics-crm-power-pane.svg)](https://addons.mozilla.org/en-US/firefox/addon/dynamics-crm-power-pane/reviews/)
-
-[![Dynamics CRM Power Pane on Mozilla Add-Ons](./docs/assets/firefox-addon.png)](
-https://addons.mozilla.org/en-US/firefox/addon/dynamics-crm-power-pane)
 
 ## Build and Run
 

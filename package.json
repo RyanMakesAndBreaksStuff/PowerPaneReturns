@@ -14,18 +14,18 @@
   "author": "Onur Menal",
   "license": "ISC",
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-sass": "^4.1.0",
+    "gulp": "^5.0.0",
+    "gulp-sass": "^5.1.0",
     "gulp-sass-variables": "^1.2.0",
-    "webpack-stream": "^6.1.2",
-    "yargs": "^16.2.0"
+    "webpack-stream": "^7.0.0",
+    "yargs": "^17.7.2"
   },
   "directories": {
     "doc": "docs"
   },
   "dependencies": {
-    "graceful-fs": "^4.2.6",
-    "node-sass": "^5.0.0"
+    "graceful-fs": "^4.2.11",
+    "node-sass": "^9.0.0"
   },
   "repository": {
     "type": "git",

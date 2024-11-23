@@ -1,23 +1,23 @@
 var gulp = require('gulp'),
     argv = require('yargs').argv,
-    sass = require('gulp-sass'),
+    sass = require('gulp-sass')(require('node-sass')),
     sassVariables = require('gulp-sass-variables'),
     webpack = require('webpack-stream'),
     fs = require('fs'),
     manifestBuilder = require('./src/js/util/manifest-builder');
 
 var supportedTargets = require('./build/targets');
-if(supportedTargets.indexOf(argv.target) === -1) {
+if (supportedTargets.indexOf(argv.target) === -1) {
     console.error(`Target "${argv.target}" is not supported. Please use one of the following targets: ${supportedTargets.join(', ')}. Example usage: gulp [task-name] --target=chrome`);
     process.exit();
 }
 
 var buildVersion = argv.buildVersion;
-if(typeof buildVersion === 'undefined' || buildVersion === null || buildVersion === "") {
+if (typeof buildVersion === 'undefined' || buildVersion === null || buildVersion === "") {
     buildVersion = require('./package.json').version;
 }
 
-gulp.task('sass-ui', function(){
+gulp.task('sass-ui', function () {
     return gulp.src('src/sass/ui/*.scss')
         .pipe(sassVariables({
             $target: argv.target
@@ -44,11 +44,11 @@ gulp.task('img', function () {
 gulp.task('js', function () {
 
     // Copy API Bridges
-    if(argv.target == 'edge') {
+    if (argv.target == 'edge') {
         gulp.src(['src/assets/lib/edge/*.js'])
             .pipe(gulp.dest(`dist/${argv.target}`));
     }
-    
+
     return gulp.src(['src/js/*.js'])
         .pipe(gulp.dest(`dist/${argv.target}/js`));
 });
