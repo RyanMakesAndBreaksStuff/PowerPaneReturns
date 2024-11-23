@@ -2,7 +2,7 @@ const build = (target, version) => {
     const manifest = {};
 
     // Common properties
-    manifest.manifest_version = 3; // Updated to V3
+    manifest.manifest_version = 3; // Required for MV3
     manifest.name = "Better Crm Power Pane";
     manifest.short_name = "Better Crm Power Pane";
     manifest.version = version;
@@ -26,14 +26,14 @@ const build = (target, version) => {
 
     // Permissions
     manifest.permissions = [
-        "identity",
         "tabs",
         "activeTab",
-        "storage"
+        "storage",
+        "scripting"
     ];
 
-    // Host Permissions (required in MV3 for HTTP/HTTPS URLs)
-    manifest.host_permissions = ["http://*/*", "https://*/*"];
+    // Host Permissions (required for HTTP/HTTPS URLs)
+    manifest.host_permissions = ["<all_urls>", "http://*/*", "https://*/*"];
 
     // Web Accessible Resources
     manifest.web_accessible_resources = [
@@ -45,8 +45,8 @@ const build = (target, version) => {
 
     // Background Service Worker
     manifest.background = {
-        service_worker: "js/background.js", // Updated to use service worker
-        type: "module" // Optional but recommended for modern JavaScript
+        service_worker: "js/background.js", // Using service worker for background
+        type: "module" // Recommended for modern JavaScript
     };
 
     // Browser Action (renamed to `action` in MV3)
@@ -70,9 +70,21 @@ const build = (target, version) => {
         manifest.author = "Oguzhan Can and Onur Menal";
     }
 
+    // Browser-specific adjustments
+    if (target === "firefox") {
+        // Firefox-specific adjustments for compatibility
+        manifest.permissions.push("webRequest");
+        manifest.browser_specific_settings = {
+            gecko: {
+                id: "{your-addon-id}",
+                strict_min_version: "91.0"
+            }
+        };
+    }
+
     return manifest;
 };
 
 module.exports = {
-    build: build
+    build
 };

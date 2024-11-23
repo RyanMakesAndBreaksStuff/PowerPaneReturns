@@ -1,74 +1,65 @@
 (function () {
+    const browserAPI = typeof browser !== "undefined" ? browser : chrome;
 
-    if (typeof browser === "undefined") {
-        browser = chrome;
-    }
-
-    Interval = {
+    const Interval = {
         PowerPaneControl: {
             Pointer: undefined,
             Count: 0,
             MaxTryCount: 10
         }
-    }
+    };
 
-    ApplicationType = {
+    const ApplicationType = {
         DynamicsCRM: "Dynamics CRM",
         Dynamics365: "Dynamics 365"
-    }
+    };
 
-    function GetAppicationType() {
-
-        var mainBody = document.querySelectorAll('body[scroll=no]');
-        var topBar = document.querySelector("div[data-id=topBar]")
-
+    function getApplicationType() {
+        const mainBody = document.querySelectorAll("body[scroll=no]");
+        const topBar = document.querySelector("div[data-id=topBar]");
         if (mainBody && mainBody.length > 0) {
-            return ApplicationType.DynamicsCRM
+            return ApplicationType.DynamicsCRM;
         } else if (topBar) {
-            return ApplicationType.Dynamics365
+            return ApplicationType.Dynamics365;
         } else {
             return null;
         }
     }
 
-    function BuildScriptTag(source) {
-        var script = document.createElement("script");
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', source);
-
+    function buildScriptTag(source) {
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = source;
         return script;
     }
 
-    function BuildSytleTag(source) {
-        var style = document.createElement('link');
-        style.setAttribute('rel', 'stylesheet');
-        style.setAttribute('type', 'text/css');
-        style.setAttribute('src', source);
-
+    function buildStyleTag(source) {
+        const style = document.createElement("link");
+        style.rel = "stylesheet";
+        style.type = "text/css";
+        style.href = source;
         return style;
     }
 
-    function BuildPowerPaneButton() {
-        var powerPaneButton = document.createElement("span");
-        powerPaneButton.setAttribute('class', 'navTabButton');
-        powerPaneButton.setAttribute('id', 'crm-power-pane-button');
-        powerPaneButton.setAttribute('title', 'Show Dynamics CRM Power Pane');
-        
+    function buildPowerPaneButton() {
+        const powerPaneButton = document.createElement("span");
+        powerPaneButton.className = "navTabButton";
+        powerPaneButton.id = "crm-power-pane-button";
+        powerPaneButton.title = "Show Dynamics CRM Power Pane";
 
-        var linkElement = document.createElement("a");
-        linkElement.setAttribute("class", "navTabButtonLink");
-        linkElement.setAttribute("title", "");
+        const linkElement = document.createElement("a");
+        linkElement.className = "navTabButtonLink";
 
-        var linkImageContainerElement = document.createElement("span");
-        linkImageContainerElement.setAttribute("class", "navTabButtonImageContainer");
+        const linkImageContainerElement = document.createElement("span");
+        linkImageContainerElement.className = "navTabButtonImageContainer";
 
-        var imageElement = document.createElement("img");
-        imageElement.setAttribute("src", browser.extension.getURL("img/icon-24.png"));
+        const imageElement = document.createElement("img");
+        imageElement.src = browserAPI.runtime.getURL("img/icon-24.png");
 
-        if (GetAppicationType() == ApplicationType.Dynamics365) {
-            powerPaneButton.setAttribute('style', 'float:left; width:50px; height:48px;cursor:pointer!important');
-            linkElement.setAttribute("style", "float:left; width:50px; height:48px;cursor:pointer!important;text-align:center");
-            imageElement.setAttribute("style", "padding-top:10px");
+        if (getApplicationType() === ApplicationType.Dynamics365) {
+            powerPaneButton.style = "float:left; width:50px; height:48px;cursor:pointer!important";
+            linkElement.style = "float:left; width:50px; height:48px;cursor:pointer!important;text-align:center";
+            imageElement.style = "padding-top:10px";
         }
 
         linkImageContainerElement.appendChild(imageElement);
@@ -78,97 +69,94 @@
         return powerPaneButton;
     }
 
-    function InjectSource(sources) {
+    function injectSource(sources) {
+        const isPowerPaneInjected = Array.from(window.top.document.scripts).some(
+            (elem) => elem.src.includes("ui/js/pane.js")
+        );
 
-        var isPowerPaneInjected = Array.from(window.top.document.scripts).find(function (elem) { return elem.src.indexOf("ui/js/pane.js") > -1 });
-
-        if (isPowerPaneInjected != undefined) { //power pane already injected
-            return;
+        if (isPowerPaneInjected) {
+            return; // Power Pane already injected
         }
 
-        body = window.top.document.querySelector('body[scroll=no]') || window.top.document.querySelector('body');
+        const body = window.top.document.querySelector("body[scroll=no]") || window.top.document.querySelector("body");
 
-        sources.forEach(function (s) {
-            body.appendChild(s);
+        sources.forEach((source) => {
+            body.appendChild(source);
         });
     }
 
+    function injectPowerPaneButton() {
+        const powerPaneButton = buildPowerPaneButton();
+        const applicationType = getApplicationType();
 
-    function InjectPowerPaneButton() {
-        var powerPaneButton = BuildPowerPaneButton();
-        var applicationType = GetAppicationType();
-
-        if (applicationType == ApplicationType.DynamicsCRM) {
-            var ribbon = window.top.document.querySelector('#navBar');
-
+        if (applicationType === ApplicationType.DynamicsCRM) {
+            const ribbon = window.top.document.querySelector("#navBar");
             if (ribbon) {
                 ribbon.prepend(powerPaneButton);
+                return true;
             }
-
-            return true;
-
-        } else if (applicationType == ApplicationType.Dynamics365) {
-            var officeWaffle = window.top.document.querySelector("button[data-id=officewaffle]");
-
+        } else if (applicationType === ApplicationType.Dynamics365) {
+            const officeWaffle = window.top.document.querySelector("button[data-id=officewaffle]");
             if (officeWaffle) {
                 officeWaffle.before(powerPaneButton);
+                return true;
             }
-
-            return true;
         }
 
         return false;
-    };
+    }
 
-    function Initialize() {
-        Interval.PowerPaneControl.Pointer = setInterval(function () {
-
+    async function initialize() {
+        Interval.PowerPaneControl.Pointer = setInterval(async () => {
             Interval.PowerPaneControl.Count++;
             if (Interval.PowerPaneControl.Count > Interval.PowerPaneControl.MaxTryCount) {
                 clearInterval(Interval.PowerPaneControl.Pointer);
             }
 
-            var powerPaneButton = document.getElementById("crm-power-pane-button");
+            const powerPaneButton = document.getElementById("crm-power-pane-button");
 
             if (!powerPaneButton) {
-                var injectButtonResult = InjectPowerPaneButton();
-                if (injectButtonResult == false) {
+                const injectButtonResult = injectPowerPaneButton();
+                if (!injectButtonResult) {
                     return;
                 }
 
-                var powerPaneTemplate = browser.extension.getURL("ui/pane.html");
+                const powerPaneTemplate = browserAPI.runtime.getURL("ui/pane.html");
 
-                xmlHttp = new XMLHttpRequest();
-                xmlHttp.open("GET", powerPaneTemplate, true);
+                try {
+                    const response = await fetch(powerPaneTemplate);
+                    if (response.ok) {
+                        const content = document.createElement("div");
+                        content.innerHTML = await response.text();
+                        content.className = "crm-power-pane-container";
 
-                xmlHttp.onreadystatechange = function () {
-                    if (xmlHttp.readyState == XMLHttpRequest.DONE) {
-                        if (xmlHttp.status == 200) {
-                            var content = document.createElement("div");
-                            content.innerHTML = xmlHttp.responseText
-                            content.className = "crm-power-pane-container";
+                        const style = buildStyleTag(browserAPI.runtime.getURL("ui/css/pane.css"));
+                        const script = buildScriptTag(browserAPI.runtime.getURL("ui/js/pane.js"));
 
-                            var style = BuildSytleTag(browser.extension.getURL("ui/css/pane.css"));
-                            var script = BuildScriptTag(browser.extension.getURL("ui/js/pane.js"));
-                            
-                            InjectSource([style, script, content]);
-                        }
-                        else if (xmlHttp.status == 400) {
-                            alert('There was an error 400');
-                        }
-                        else {
-                            alert('something else other than 200 was returned');
-                        }
+                        injectSource([style, script, content]);
+                    } else {
+                        console.error(`Failed to load pane.html: ${response.status}`);
                     }
-                };
-
-                xmlHttp.send();
+                } catch (error) {
+                    console.error("Error fetching Power Pane template:", error);
+                }
             } else {
                 clearInterval(Interval.PowerPaneControl.Pointer);
             }
         }, 1000);
     }
 
-    Initialize();
-
+    // Listen for the message from the background script
+    browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === "togglePowerPane") {
+            const pane = document.querySelector(".crm-power-pane-sections");
+            if (pane) {
+                const nextValue = (pane.style.display !== "" && pane.style.display !== "none") ? "none" : "block";
+                pane.style.display = nextValue;
+            } else {
+                console.error("CRM Power Pane element not found.");
+            }
+        }
+    });
+    initialize();
 })();
