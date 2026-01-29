@@ -1,0 +1,16 @@
+/* Utility styles moved from inline attributes in pane.html */
+
+/* Clear floats */
+.clear-both {
+  clear: both !important;
+}
+
+/* Margin helpers */
+.mr-10 {
+  margin-right: 10px !important;
+}
+
+/* Small helpers used by the pane markup */
+.hide {
+  display: none !important;
+}
