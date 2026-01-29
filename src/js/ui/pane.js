@@ -70,7 +70,7 @@ $(function () {
                 },
                 this.RetreiveData = function (callback) {
                     var $popup = this.Initialize();
-                    
+
                     $popupParameters = $popup.find("ul");
 
                     for (var key in this.Parameters) {
@@ -118,7 +118,7 @@ $(function () {
                                 li += "<li><a href='#' onclick='window.open(\"" + url +"\")'>" + item.name + "</a></li>"
                             });
                             li += "</li>";
-                            $popupParameters.append(li);                        
+                            $popupParameters.append(li);
                         } else {
                             $popupParameters.append("<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><input type='text' value='" + p.value + "' name='" + key + "'/><span class='crm-power-pane-copy'>Copy it!</span></li>");
                         }
@@ -150,8 +150,9 @@ $(function () {
                 color = (color == "rgb(0, 32, 80)" || color == "rgb(0, 20, 51)") ? "#001ca5" : color;
 
                 //$("#crm-power-pane-button").css("background-color", color);
-                $(".crm-power-pane-subgroup .icon").css("background-color", color);
-                $(".crm-power-pane-header").css("color", color);
+        
+                // $(".crm-power-pane-subgroup .icon").css("background-color", color);
+                // $(".crm-power-pane-header").css("color", color);
 
             }
         },
@@ -317,13 +318,13 @@ $(function () {
 
             var _getLabelElement = function (attributeLogicalName) {
                 var $label = Content.$("#" + attributeLogicalName + "_c");
-                
+
                 if(!$label.length) {
                     // Try to get the label for UCI
                     $label = Content.$("label", '[data-id="' + attributeLogicalName + '"]');
                 }
 
-                return $label.length 
+                return $label.length
                     ? Content.$($label[0]) // TODO: refactor later - yuck. inefficient jquery wrapping
                     : null;
             }
@@ -335,7 +336,7 @@ $(function () {
                     // Try to get the dropdown for UCI
                     $select = Content.$("select", '[data-id="' + attributeLogicalName + '"]');
                 }
-                
+
                 return $select;
             };
 
@@ -358,7 +359,7 @@ $(function () {
             $(window).on("blur", function () {
                 $(".crm-power-pane-sections").delay(100).slideUp(CrmPowerPane.Constants.SlideTime);
             });
-            
+
             $(".crm-power-pane-sections").click(function (e) {
                 e.stopPropagation();
             });
@@ -375,7 +376,7 @@ $(function () {
                         }
                     ];
 
-                    // Show object type code if known 
+                    // Show object type code if known
                     var objectTypeCode = _getObjectTypeCode();
                     if(!!objectTypeCode) {
                         values.push({
@@ -444,8 +445,8 @@ $(function () {
                 try {
                     var id = Xrm.Page.data.entity.getId();
                     var etc = _getObjectTypeCode();
-                    
-                    if(Content.Mscrm && Content.Mscrm.RibbonActions && Content.Mscrm.RibbonActions.openFormProperties) { 
+
+                    if(Content.Mscrm && Content.Mscrm.RibbonActions && Content.Mscrm.RibbonActions.openFormProperties) {
                         Content.Mscrm.RibbonActions.openFormProperties(id, etc);
                     }
                     else {
@@ -510,14 +511,14 @@ $(function () {
                         service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
                         service.setRequestHeader("Accept", "application/json, text/javascript, */*");
                         service.send(null);
-                        var requestResults = eval('(' + service.responseText + ')').d;
+                        var requestResults = JSON.parse(service.responseText).d;
                         var results = requestResults.results[0].systemuserroles_association.results;
                         return results.map(function(r) { return {
-                            name: r.Name, 
+                            name: r.Name,
                             id: r.RoleId,
                             entityType: "role"
                         }})
-                    }                   
+                    }
                     function getUserTeams() {
                         var userId = Xrm.Page.context.getUserId();
                         var serverUrl = Xrm.Page.context.getClientUrl();
@@ -527,10 +528,10 @@ $(function () {
                         service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
                         service.setRequestHeader("Accept", "application/json, text/javascript, */*");
                         service.send(null);
-                        var requestResults = eval('(' + service.responseText + ')').d;
+                        var requestResults = JSON.parse(service.responseText).d;
                         var results = requestResults.results[0].teammembership_association.results;
                         return results.map(function(t) { return {
-                            name: t.Name, 
+                            name: t.Name,
                             id: t.TeamId,
                             entityType: "team"
                         }})
@@ -546,11 +547,11 @@ $(function () {
                                     {
                                         label: "User id",
                                         value: Xrm.Page.context.getUserId()
-                                    }, 
+                                    },
                                     {
                                         label: "User Roles",
                                         value: getUserRoles()
-                                    }, 
+                                    },
                                     {
                                         label: "User Teams",
                                         value: getUserTeams()
@@ -568,7 +569,7 @@ $(function () {
                             c.setDisabled(false);
                         } catch (e) { }
                     });
-                    
+
                     CrmPowerPane.UI.ShowNotification("All fields are enabled.");
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
@@ -701,7 +702,7 @@ $(function () {
                                 if (!a._$originalLabel) {
                                     a._$originalLabel = a.getLabel();
                                     var newLabel = `${a.getLabel()} [${a.getName()}]`;
-                                    a.setLabel(newLabel);
+                                 a.setLabel(newLabel);
                                     updateStatus = "update";
                                 }
                                 else {
@@ -739,7 +740,7 @@ $(function () {
                 Xrm.Page.ui.controls.forEach(function (control) {
                     try {
                         if (control.getControlType() === 'lookup') {
-                            
+
                             var linkId = control.getName() + "-lookup-link";
                             var externalIcon = '<svg id="i-external" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M14 9 L3 9 3 29 23 29 23 18 M18 4 L28 4 28 14 M28 4 L14 18" /></svg>';
                             var openInNewWindowLink = $('<a id="' + linkId + '" class="crm-power-pane-lookup-link" alt="Open this record in a new window" title="Open this record in a new window"  style="cursor: pointer;margin-left: 5px">' + externalIcon + '</a>');
@@ -766,7 +767,7 @@ $(function () {
             });
 
             $("#show-optionset-values").click(function () {
-                
+
                 try {
                     Xrm.Page.ui.controls.forEach(function (control) {
                         if (control.getControlType && control.getControlType() == "optionset") {
@@ -815,8 +816,8 @@ $(function () {
             });
 
             $("#mobile-client").click(function () {
-                var url = Content.Xrm.Page.context.getClientUrl(); 
-                window.open(url + "/nga/main.htm?org=" + Content.Xrm.Page.context.getOrgUniqueName() + "&server=" + url); 
+                var url = Content.Xrm.Page.context.getClientUrl();
+                window.open(url + "/nga/main.htm?org=" + Content.Xrm.Page.context.getOrgUniqueName() + "&server=" + url);
             });
 
             $("#performance-center").click(function () {
@@ -860,9 +861,9 @@ $(function () {
                                         {
                                             label: "Entity Schema Name (optional)",
                                             name: "entityname",
-                                            defaultValue: (Xrm && Xrm.Page 
-                                                            && Xrm.Page.data 
-                                                            && Xrm.Page.data.entity 
+                                            defaultValue: (Xrm && Xrm.Page
+                                                            && Xrm.Page.data
+                                                            && Xrm.Page.data.entity
                                                             && Xrm.Page.data.entity.getEntityName) ? Xrm.Page.data.entity.getEntityName() : null
                                         }
                                     ],
@@ -874,7 +875,7 @@ $(function () {
                                             var entitiesCategoryCode = 9801; // undocumented
                                             entityDetail = "&def_category=" + entitiesCategoryCode + "&def_type=" + entityTypeCode
                                         }
-                                        
+
                                         // ref https://docs.microsoft.com/en-us/previous-versions/dynamicscrm-2016/developers-guide/gg328257(v=crm.8)?redirectedfrom=MSDN#constant-solutionid-values
                                         var defaultSolutionId = "{FD140AAF-4DF4-11DD-BD17-0019B9312238}";
 
@@ -986,7 +987,7 @@ $(function () {
                             },
                             true);
                     }
-                    
+
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
                 }
@@ -1102,7 +1103,7 @@ $(function () {
 
                 $("#crm-power-pane-fetchxml-popup-container ul li").removeClass(activeTabClass).first().addClass(activeTabClass);
                 $(".crm-power-pane-fetchxml-tab").hide().first().show();
-                
+
             });
 
             $("#crm-power-pane-fetchxml-popup-container ul li").click(function () {
@@ -1128,7 +1129,7 @@ $(function () {
                 var $resultArea = $("#crm-power-pane-fetchxml-result-area");
                 $resultArea.val("");
                 $resultArea.css("color", "#000000");
-                
+
                 var request = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>';
                 request += '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">' + '<request i:type="b:RetrieveMultipleRequest" ' + ' xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" ' + ' xmlns:i="http://www.w3.org/2001/XMLSchema-instance">' + '<b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">' + '<b:KeyValuePairOfstringanyType>' + '<c:key>Query</c:key>' + '<c:value i:type="b:FetchExpression">' + '<b:Query>';
                 request += CrmEncodeDecode.CrmXmlEncode(xml);
@@ -1168,7 +1169,7 @@ $(function () {
             $("#go-to-create-form").click(function () {
                 try {
                     CrmPowerPane.UI.BuildInputPopup(
-                        "Go to create form", 
+                        "Go to create form",
                         "Redirects you to create form of specified entity. ",
                         [
                             {
@@ -1229,5 +1230,5 @@ $(function () {
     CrmPowerPane.UI.SetButtonBackgrounds();
     CrmPowerPane.RegisterjQueryExtensions();
     CrmPowerPane.RegisterEvents();
-    
+
 });

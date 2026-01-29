@@ -1,7 +1,7 @@
 {
-  "name": "crm-power-pane",
-  "version": "1.2.3",
-  "description": "Dynamics 365 Power Pane is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.",
+  "name": "power-pane-returns",
+  "version": "1.3.0",
+  "description": "After it's initial release, Power Pane quickly became a favorite among CRM users for its ability to streamline workflows and improve productivity. This updated version, 'Strikes Back' against lesser extensions who foolishly thought to usrup the throne. No hidden data collection, just pure CRM goodness",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,25 +11,26 @@
     "build-edge": "npm run build -- --target=edge",
     "build-all": "node ./build/all"
   },
-  "author": "Onur Menal and Oguzhan Can",
+  "author": "Onur Menal,Oguzhan Can,Ryan Rettinger",
   "license": "ISC",
   "devDependencies": {
-    "gulp": "^5.0.0",
+    "gulp": "^5.0.1",
     "gulp-sass": "^5.1.0",
     "gulp-sass-variables": "^1.2.0",
+    "sass": "^1.97.0",
+    "webpack-cli": "^6.0.1",
     "webpack-stream": "^7.0.0",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "directories": {
     "doc": "docs"
   },
   "dependencies": {
-    "graceful-fs": "^4.2.11",
-    "node-sass": "^9.0.0"
+    "graceful-fs": "^4.2.6"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OguzhanC07/BetterCrmPowerPane.git"
+    "url": "git+https://github.com/Ryan8182/PowerPaneReturns.git"
   },
   "keywords": [
     "dynamics",
@@ -39,10 +40,12 @@
     "chrome",
     "firefox",
     "extension",
-    "add-on"
+    "add-on",
+    "dataverse",
+    "model-driven app"
   ],
   "bugs": {
-    "url": "https://github.com/OguzhanC07/BetterCrmPowerPane/issues"
+    "url": "https://github.com/Ryan8182/PowerPaneReturns/issues"
   },
-  "homepage": "https://github.com/OguzhanC07/BetterCrmPowerPane#readme"
+  "homepage": "https://github.com/Ryan8182/PowerPaneReturns#readme"
 }

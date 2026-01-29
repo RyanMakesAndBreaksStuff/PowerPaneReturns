@@ -1,59 +1,70 @@
 $target: 'chrome' !default;
+// Relative path from compiled `ui/css/pane.css` to `img/`
+// Base path for image assets. For Chrome, this will be the extension URL.
 $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
+//Color via fluent ui charting - https: //microsoft.github.io/fluentui-charting-contrib/docs/colors 
+// Dark mode tokens (accent palette from provided image)
+$dark-bg: #111214;
+$surface: #111214;
+$surface-hover: #2a2b2f;
+$primary-color: #C8D1FA; // Cornflower Tint 40
+$primary-hover: #83BDEB; // Light Blue Tint 30
+$primary-active: #3160B7;
+$accent-pink: #F7ADDA;
+$accent-teal: #9BD9DB;
+$accent-orchid: #B29AD4;
+$accent-green: #A7E3A5;
+$accent-pumpkin: #DF8E64;
+$accent-lime: #A4CC6C;
+$accent-lilac: #CF87DA;
+$accent-gold: #DAC157;
+$text-primary: $accent-pumpkin;
+$text-secondary: $accent-gold;
+$border-color: #2f2f33;
+$shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
-@if($target == 'firefox') {
-    $browserPrefix: 'moz-extension://__MSG_@@extension_id__';
+/* Utility classes */
+.clear-both {
+    clear: both !important;
 }
 
-@if($target == 'edge') {
-    $browserPrefix: 'ms-browser-extension://__MSG_@@extension_id__';
+.mr-10 {
+    margin-right: 10px !important;
 }
 
-#crm-power-pane-popup a:link,
-#crm-power-pane-popup a:visited {
-    background-color: white;
-    color: black;
-    border: rgb(17, 96, 183);
-    padding: 4px 8px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
+.hide {
+    display: none !important;
 }
 
-#crm-power-pane-popup a:hover,
-#crm-power-pane-popup a:active {
-    background-color: rgb(17, 96, 183);
-    color: white;
-}
-
+/* Root */
 #crm-power-pane {
-    font-family: Segoe\000020UI,Tahoma,Arial;
-    font-size: 11px;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    box-sizing: border-box;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    clear:both;
+    clear: both;
 }
 
+/* Sections container */
 .crm-power-pane-sections {
     position: absolute;
     top: 50px;
     display: none;
     width: 100%;
-    background-color: white;
-    color: black;
-    padding: 10px 0px;
+    background: $surface;
+    color: $text-primary;
+    padding: 10px 0;
     font-size: 14px;
-    box-shadow: 5px 5px 5px #CCC;
-    clear: both;
-    outline:none;
+    box-shadow: $shadow-4;
+    outline: none;
 }
 
 .crm-power-pane-scrolling-container {
-    
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -61,35 +72,34 @@ $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
     -webkit-overflow-scrolling: touch;
 
     &::-webkit-scrollbar {
-        display:none;
+        display: none;
     }
 }
 
 .crm-power-pane-section {
-    list-style-type: none;
+    list-style: none;
     float: left;
-    padding: 0px 24px;
+    padding: 0 24px;
     flex: 0 0 auto;
+    color: $accent-pumpkin;
 }
 
 .crm-power-pane-header {
     display: block;
     white-space: nowrap;
     cursor: default;
-    font-weight: 500;
-    height: 100%;
+    font-weight: 600;
     font-size: 18px;
-    padding-bottom: 10px;
-    padding-top: 13px;
-    margin-left: 4px;
-    color: #1160B7;
+    padding: 13px 0 10px 4px;
+    color: $accent-pink;
     height: 30px;
 }
 
 .crm-power-pane-subgroup {
     height: 40px;
     margin-left: 10px;
-    cursor: pointer!important;
+    cursor: pointer !important;
+    color: $accent-green;
 
     span {
         display: inline-block;
@@ -98,336 +108,222 @@ $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
     }
 
     span:not(.icon):hover {
-        background-color: #DFDFDF !important;
+        background-color: $surface-hover !important;
         cursor: pointer;
     }
 
     span.icon {
-        background-color: #001CA5;
-        background-position: 6px 6px !important;
-        background-repeat: no-repeat !important;
-        padding: 0px;
+        background-color: $dark-bg;
+        background-position: center;
+        background-repeat: no-repeat;
         background-size: 20px !important;
+        padding: 0;
         width: 32px;
         height: 32px;
         vertical-align: middle;
         margin-right: 5px;
-    }
-
-    span.fetch-xml-icon {
-        background: url('#{$browserPrefix}/img/action-icons/fetch-xml.png');
-    }
-
-    span.solutions-icon {
-        background: url('#{$browserPrefix}/img/action-icons/solutions.png');
-    }
-
-    span.entity-name-icon {
-        background: url('#{$browserPrefix}/img/action-icons/entity-name.png');
-    }
-
-    span.record-id-icon {
-        background: url('#{$browserPrefix}/img/action-icons/record-id.png');
-    }
-
-    span.record-url-icon {
-        background: url('#{$browserPrefix}/img/action-icons/record-url.png');
-    }
-
-    span.record-properties-icon {
-        background: url('#{$browserPrefix}/img/action-icons/record-properties.png');
-    }
-
-    span.user-info-icon {
-        background: url('#{$browserPrefix}/img/action-icons/user-info.png');
-    }
-
-    span.go-to-record-icon {
-        background: url('#{$browserPrefix}/img/action-icons/go-to-record.png');
-    }
-
-    span.enable-all-fields-icon {
-        background: url('#{$browserPrefix}/img/action-icons/enable-all-fields.png');
-    }
-
-    span.show-optionset-values-icon {
-        background: url('#{$browserPrefix}/img/action-icons/optionset.png');
-    }
-
-    span.show-all-fields-icon {
-        background: url('#{$browserPrefix}/img/action-icons/show-all-fields.png');
-    }
-
-    span.disable-field-requirement-icon {
-        background: url('#{$browserPrefix}/img/action-icons/disable-field-requirement.png');
-    }
-
-    span.schema-names-icon {
-        background: url('#{$browserPrefix}/img/action-icons/schema-names.png');
-    }
-
-    span.schema-names-as-desc-icon {
-        background: url('#{$browserPrefix}/img/action-icons/schema-names-as-desc.png');
-    }
-
-    span.schema-names-in-brackets-icon {
-        background: url('#{$browserPrefix}/img/action-icons/schema-names-in-brackets.png');
-    }
-
-    span.refresh-form-icon {
-        background: url('#{$browserPrefix}/img/action-icons/refresh-form.png');
-    }
-
-    span.toggle-lookup-links-icon {
-        background: url('#{$browserPrefix}/img/action-icons/toggle-lookup-links.png');
-    }
-
-    span.crm-diagnostics-icon {
-        background: url('#{$browserPrefix}/img/action-icons/crm-diagnostics.png');
-        background-size: 25px !important;
-        background-position: 3px 3px !important;
-    }
-
-    span.mobile-icon {
-        background: url('#{$browserPrefix}/img/action-icons/mobile.png');
-    }
-
-    span.entity-editor-icon {
-        background: url('#{$browserPrefix}/img/action-icons/entity-editor.png');
-    }
-
-    span.refresh-ribbon-icon {
-        background: url('#{$browserPrefix}/img/action-icons/ribbon.png');
-    }
-
-    span.performance-center-icon {
-        background: url('#{$browserPrefix}/img/action-icons/performance.png');
-    }
-
-    span.show-dirty-fields-icon {
-        background: url('#{$browserPrefix}/img/action-icons/dirty.png');
-    }
-
-    span.clear-all-notifications-icon {
-        background: url('#{$browserPrefix}/img/action-icons/clear-all-notifications.png');
-    }
-
-    span.show-field-value-icon {
-        background: url('#{$browserPrefix}/img/action-icons/input.png');
-    }
-
-    span.find-field-in-form-icon {
-        background: url('#{$browserPrefix}/img/action-icons/target.png');
-    }
-
-    span.clone-record {
-        background: url('#{$browserPrefix}/img/action-icons/sheep.png');
-        background-size: 27px !important;
-        background-position: 2px 3px !important;
-    }
-
-    span.auto-fill {
-        background: url('#{$browserPrefix}/img/action-icons/robot.png');
-    }
-
-    span.go-to-create-form {
-        background: url('#{$browserPrefix}/img/action-icons/go-to-create-form.png');
-    }
-
-    span.form-editor-icon {
-        background: url('#{$browserPrefix}/img/action-icons/form-editor.png');
+        border-radius: 4px;
     }
 }
 
-#crm-power-pane-notification {
-    position: absolute;
-    min-width: 200px;
-    border: 1px solid #DDD;
-    border-radius: 8px;
-    padding: 7px;
-    font-size: 11px;
-    right: 75px;
-    bottom: 100px;
-    display: none;
+/* Icon classes — relative paths for Chrome extension */
+.crm-power-pane-subgroup span.fetch-xml-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/fetch-xml.png');
 }
 
-.crm-power-pane-info {
-    background-color: #abd2ff;
-    color: #315279;
-    border: 1px solid #83bdff;
+.crm-power-pane-subgroup span.solutions-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/solutions.png');
 }
 
-.crm-power-pane-warning {
-    background-color: #e2fdbb;
-    color: #5d7d2f;
-    border: 1px solid #b5e86b;
+.crm-power-pane-subgroup span.entity-name-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/entity-name.png');
 }
 
-.crm-power-pane-error {
-    background-color: #ffabab;
-    color: #911a1a;
-    border: 1px solid #ff7878;
+.crm-power-pane-subgroup span.record-id-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/record-id.png');
 }
 
-.crm-power-pane-default {
-    color: #333;
-    border: 1px solid #DDD;
+.crm-power-pane-subgroup span.record-url-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/record-url.png');
 }
 
-.crm-power-pane-success {
-    background-color: rgb(165, 251, 180);
-    color: rgb(74, 148, 87);
-    border-color: rgb(125, 234, 144);
+.crm-power-pane-subgroup span.record-properties-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/record-properties.png');
 }
 
+.crm-power-pane-subgroup span.user-info-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/user-info.png');
+}
+
+.crm-power-pane-subgroup span.go-to-record-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/go-to-record.png');
+}
+
+.crm-power-pane-subgroup span.enable-all-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/enable-all-fields.png');
+}
+
+.crm-power-pane-subgroup span.show-optionset-values-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/optionset.png');
+}
+
+.crm-power-pane-subgroup span.show-all-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/show-all-fields.png');
+}
+
+.crm-power-pane-subgroup span.disable-field-requirement-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/disable-field-requirement.png');
+}
+
+.crm-power-pane-subgroup span.schema-names-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/schema-names.png');
+}
+
+.crm-power-pane-subgroup span.schema-names-as-desc-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/schema-names-as-desc.png');
+}
+
+.crm-power-pane-subgroup span.schema-names-in-brackets-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/schema-names-in-brackets.png');
+}
+
+.crm-power-pane-subgroup span.refresh-form-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/refresh-form.png');
+}
+
+.crm-power-pane-subgroup span.toggle-lookup-links-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/toggle-lookup-links.png');
+}
+
+.crm-power-pane-subgroup span.crm-diagnostics-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/crm-diagnostics.png');
+    background-size: 25px !important;
+}
+
+.crm-power-pane-subgroup span.mobile-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/mobile.png');
+}
+
+.crm-power-pane-subgroup span.entity-editor-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/entity-editor.png');
+}
+
+.crm-power-pane-subgroup span.refresh-ribbon-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/ribbon.png');
+}
+
+.crm-power-pane-subgroup span.performance-center-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/performance.png');
+}
+
+.crm-power-pane-subgroup span.show-dirty-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/dirty.png');
+}
+
+.crm-power-pane-subgroup span.clear-all-notifications-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/clear-all-notifications.png');
+}
+
+.crm-power-pane-subgroup span.show-field-value-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/input.png');
+}
+
+.crm-power-pane-subgroup span.find-field-in-form-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/target.png');
+}
+
+.crm-power-pane-subgroup span.clone-record {
+    background-image: url('#{$browserPrefix}/img/action-icons/sheep.png');
+    background-size: 27px !important;
+}
+
+.crm-power-pane-subgroup span.auto-fill {
+    background-image: url('#{$browserPrefix}/img/action-icons/robot.png');
+}
+
+.crm-power-pane-subgroup span.go-to-create-form {
+    background-image: url('#{$browserPrefix}/img/action-icons/go-to-create-form.png');
+}
+
+.crm-power-pane-subgroup span.form-editor-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/form-editor.png');
+}
+
+/* Popup and buttons */
 #crm-power-pane-popup-bg {
     display: none;
-    background-color: black;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-    opacity: 0.3;
+    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
 }
 
 #crm-power-pane-popup {
     display: none;
-    width: 320px;
-    background-color: white;
-    box-shadow: 0px 0px 15px black;
-    border: 1px solid #999;
-    position: absolute;
+    position: fixed;
+    top: 50%;
     left: 50%;
-    top: 15%;
-    margin-left: -185px;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    background: $surface;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    box-shadow: $shadow-4;
+    z-index: 9999;
     padding: 20px 20px 40px 20px;
 }
 
 .crm-power-pane-advenced-popup {
     display: none;
     width: 750px;
-    height:auto;
-    background-color: white;
-    box-shadow: 0px 0px 15px black;
-    border: 1px solid #999;
+    height: auto;
+    background: $surface;
+    border: 1px solid $border-color;
+    box-shadow: $shadow-4;
     position: absolute;
     left: 32%;
     top: 10%;
     margin-left: -185px;
     padding: 20px 20px 50px 20px;
-}
-
-#crm-power-pane-fetchxml-popup ul {
-    width: 100%;
-    height: 18px;
-
-    li {
-        float: left;
-        padding: 2px;
-        padding-left: 10px;
-        padding-right: 10px;
-        background-color: #efefef;
-        border: 1px solid #DDD;
-        height: 14px;
-        cursor:pointer;
-    }
-}
-
-#crm-power-pane-fetchxml-popup-tabs{
-    border:1px solid #DDD;
-    height: 280px;
-    margin-top: 1px;
-}
-
-.dynamics-crm-power-pane-active-tab{
-    background-color:white!important;
-    cursor:default!important;
-}
-
-.crm-power-pane-texarea{
-    font-family:Consolas,'Lucida Console';
-    height:250px;
-    line-height: 18px;
-    font-size:11px;
-    padding:3px;
-    width:99%;
-    border:none;
-    outline:none;
-}
-
-.crm-power-pane-fetchxml-tab{
-    display:none;
-    clear: both
-}
-
-
-#crm-power-pane-popup ul {
-    list-style-type: none;
-    margin: 0px;
-    padding: 0px;
-    
-    li {
-        clear:both; 
-
-        span {
-            display: block;
-        }
-
-        input {
-            width: 100%;
-            padding: 3px;
-            border: 1px solid #DDD;
-            font-family: Segoe\000020UI,Tahoma,Arial;
-            font-size: 11px;
-        }
-    }
+    z-index: 9999;
 }
 
 .crm-power-pane-popup-header {
     font-size: 27px;
-    font-weight: Lighter;
-    display: block;
+    font-weight: lighter;
+    color: $text-primary;
+    margin: 0 0 8px 0;
     max-width: 400px;
-    margin-right: 21px;
-    padding-left: 0px;
-    font-family: Segoe\000020UI,Tahoma,Arial;
-    padding-top: 5px;
-    height: 20px !important;
-    padding-bottom:18px!important
+    padding: 5px 0 18px 0;
 }
 
-.crm-power-pane-popup-description{
-    
-    padding-bottom:10px;
+.crm-power-pane-popup-description {
+    margin: 0 0 12px 0;
+    color: $text-secondary;
+    padding-bottom: 10px;
 }
-
-.crm-power-pane-popup-input-text {
-    margin-top: 5px !important;
-}
-
 
 .crm-power-pane-button {
-    background : none;
-    border: 1px solid #DDD;
-    display: inline-block;
-    min-width: 70px;
-    padding: 3px 3px;
+    padding: 6px 12px;
+    border: 1px solid $accent-lilac;
+    border-radius: 4px;
+    background: $dark-bg;
+    color: $text-primary;
     cursor: pointer;
-    margin-left: 5px;
-    font-family: Segoe\000020UI,Tahoma,Arial;
+    font-family: "Segoe UI", Tahoma, Arial;
     font-size: 11px;
     height: 25px;
-}
+    min-width: 70px;
 
-.crm-power-pane-button:hover {
-    background-color: #eee;
-}
+    &:hover {
+        background-color: $surface-hover;
+    }
 
-#crm-power-pane-button:hover {
-    background-color: rgba(255, 255, 255, 0.8);
+    &.primary {
+        background: $primary-color;
+        color: $dark-bg;
+        border-color: $accent-lilac;
+    }
 }
 
 #crm-power-pane-button-container {
@@ -436,46 +332,210 @@ $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
     margin-top: 35px;
 }
 
+/* Notification */
+#crm-power-pane-notification {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    min-width: 260px;
+    background: $surface;
+    color: $text-primary;
+    border-left: 4px solid $accent-orchid;
+    border-radius: 8px;
+    box-shadow: $shadow-4;
+    padding: 12px;
+    display: none;
+    z-index: 10000;
+}
+
+.crm-power-pane-info {
+    background: $primary-hover;
+    color: $text-primary;
+    border: 1px solid $primary-color;
+}
+
+.crm-power-pane-warning {
+    background: $accent-gold;
+    color: $text-primary;
+    border: 1px solid adjust-color($accent-gold, $lightness: -6%);
+}
+
+.crm-power-pane-error {
+    background: $accent-pumpkin;
+    color: $text-primary;
+    border: 1px solid adjust-color($accent-pumpkin, $lightness: -6%);
+}
+
+.crm-power-pane-default {
+    color: $text-primary;
+    border: 1px solid $border-color;
+}
+
+.crm-power-pane-success {
+    background: $accent-green;
+    color: $text-primary;
+    border-color: adjust-color($accent-green, $lightness: -6%);
+}
+
+/* Fetch XML popup */
+#crm-power-pane-fetchxml-popup ul {
+    width: 100%;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        float: left;
+        padding: 2px 10px;
+        background-color: #efefef;
+        border: 1px solid #ddd;
+        height: 14px;
+        cursor: pointer;
+    }
+}
+
+#crm-power-pane-fetchxml-popup-tabs {
+    border: 1px solid #ddd;
+    height: 280px;
+    margin-top: 1px;
+}
+
+.dynamics-crm-power-pane-active-tab {
+    background-color: white !important;
+    cursor: default !important;
+}
+
+.crm-power-pane-texarea {
+    font-family: Consolas, 'Lucida Console', monospace;
+    height: 250px;
+    line-height: 18px;
+    font-size: 11px;
+    padding: 3px;
+    width: 99%;
+    border: none;
+    outline: none;
+    background: $dark-bg;
+    color: $text-primary;
+}
+
+.crm-power-pane-fetchxml-tab {
+    display: none;
+    clear: both;
+}
+
+/* Form elements */
+#crm-power-pane-popup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+        clear: both;
+        margin-bottom: 8px;
+
+        span {
+            display: block;
+            margin-bottom: 4px;
+            color: $text-primary;
+        }
+
+        input {
+            width: 100%;
+            padding: 3px;
+            border: 1px solid $border-color;
+            font-family: "Segoe UI", Tahoma, Arial;
+            font-size: 11px;
+            background: $dark-bg;
+            color: $text-primary;
+            box-sizing: border-box;
+        }
+    }
+}
+
+textarea,
+input[type="text"],
+input[type="search"] {
+    padding: 8px 10px;
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    font-size: 13px;
+    background: $dark-bg;
+    color: $text-primary;
+    font-family: "Segoe UI", Tahoma, Arial;
+}
+
+/* Tables */
+.dynamics-crm-power-pane-table {
+    width: 100%;
+    border-collapse: separate;
+
+    th,
+    td {
+        padding: 6px 8px;
+        font-size: 13px;
+        color: $text-primary;
+    }
+
+    th {
+        border-top: 1px solid $border-color;
+        border-bottom: 1px solid $border-color;
+        height: 22px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    td {
+        height: 22px;
+    }
+}
+
+/* Links */
+#crm-power-pane-popup a:link,
+#crm-power-pane-popup a:visited {
+    background-color: $surface;
+    color: $accent-lime;
+    border: 1px solid $primary-color;
+    padding: 4px 8px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+#crm-power-pane-popup a:hover,
+#crm-power-pane-popup a:active {
+    background-color: $primary-color;
+    color: $dark-bg;
+}
+
+/* Utility styles */
 .crm-power-pane-copy {
     float: right;
     padding-top: 5px;
     cursor: pointer;
     margin-bottom: 5px;
+    color: $accent-teal;
+
+    &:hover {
+        color: $accent-green;
+    }
 }
 
 .crm-power-pane-copied {
-    color:rgb(74, 148, 87);
+    color: $accent-green;
 }
-
-.crm-power-pane-copy:hover {
-    color:rgb(74, 148, 87);
-}
-
-.power-pane-icon-test {
-    display:none;
-    background-color:#F0F0F0;
-    border:1px solid #DDD;
-    cursor:pointer;
-    width:100px;
-    height:100px;
-    position: Absolute;
-}
-
-.power-pane-icon-test :hover {
-    display:block;
-}
-
 
 #crm-power-pane-notes {
-    font-size:11px;
-    clear:both;
-    float:right;
-    margin-right:40px
+    font-size: 11px;
+    clear: both;
+    float: right;
+    margin-right: 40px;
 }
 
 #crm-power-pane-note {
-    color:#777;
-    clear:both;
+    color: $text-secondary;
+    clear: both;
 }
 
 #crm-power-pane-github {
@@ -487,10 +547,8 @@ $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
     float: right;
     clear: both;
     font-size: 11px;
-    clear: both;
-    float: right;
-    vertical-align:sub;
-    
+    color: $accent-lime;
+
     span {
         background: url('#{$browserPrefix}/img/github.png');
         background-size: 22px 22px;
@@ -504,22 +562,20 @@ $browserPrefix: 'chrome-extension://__MSG_@@extension_id__' !default;
     }
 }
 
-.dynamics-crm-power-pane-table {
-    width:100%;
-    border-collapse: separate;
-
-    th{
-        border-top:1px solid #d6d6d6;
-        border-bottom:1px solid #d6d6d6;
-        height:22px;
-        cursor:pointer;
-    }
-
-    td {
-        height:22px;
-    }
+.dynamics-crm-power-pane-table-filter {
+    margin-bottom: 12px;
+    clear: both;
 }
 
-#crm-power-pane-fetchxml-popup-container ul li {
-    list-style-type: none;
+.crm-power-pane-popup-input-text {
+    margin-top: 5px;
+    margin-bottom: 8px;
+    color: $text-primary;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
 }
