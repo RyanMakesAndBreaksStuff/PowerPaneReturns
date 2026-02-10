@@ -52,7 +52,7 @@
         var powerPaneButton = document.createElement("span");
         powerPaneButton.setAttribute('class', 'navTabButton');
         powerPaneButton.setAttribute('id', 'crm-power-pane-button');
-        powerPaneButton.setAttribute('title', 'Show Dynamics CRM Power Pane');
+        powerPaneButton.setAttribute('title', 'Open Power Pane Returns');
 
 
         var linkElement = document.createElement("a");
@@ -61,15 +61,40 @@
 
         var linkImageContainerElement = document.createElement("span");
         linkImageContainerElement.setAttribute("class", "navTabButtonImageContainer");
-
+      
         var imageElement = document.createElement("img");
-        imageElement.setAttribute("src", browser.runtime.getURL("img/icon-24.png"));
-
-        if (GetAppicationType() == ApplicationType.Dynamics365) {
-            powerPaneButton.setAttribute('style', 'float:left; width:50px; height:48px;cursor:pointer!important');
-            linkElement.setAttribute("style", "float:left; width:50px; height:48px;cursor:pointer!important;text-align:center");
-            imageElement.setAttribute("style", "padding-top:10px");
+        try {
+            imageElement.setAttribute("src", chrome.runtime.getURL("img/icon-48p.png"))
+        } catch (e) {
+            console.error("URL Image Error: ", e);
         }
+
+        if (GetAppicationType() === ApplicationType.Dynamics365) {
+            const divBG = window.getComputedStyle(
+                window.top.document.getElementById('topBar')
+            ).backgroundColor;
+
+            // Apply custom styles
+            powerPaneButton.style.cssText = 'float:left; width:48px; height:48px;cursor:pointer!important';
+            linkElement.style.cssText = `float:left; width:48px; height:48px;cursor:pointer!important;text-align:center;background-color:${divBG}`;
+
+            // Add hover effects to the button.
+            linkElement.style.transition = 'background-color 0.3s';
+            if (divBG) {
+                linkElement.addEventListener('mouseenter', function () {
+                    linkElement.style.backgroundColor = fadeColor(divBG, 0.5); // Fade on hover
+                });
+                linkElement.addEventListener('mouseleave', function () {
+                    linkElement.style.backgroundColor = divBG; // Revert on leave
+                });
+            }
+        } else {
+            // Default styling for DynamicsCRM.
+            powerPaneButton.setAttribute('style', 'float:left; width:48px; height:48px;cursor:pointer!important');
+            linkElement.setAttribute("style", "float:left; width:48px; height:48px;cursor:pointer!important;text-align:center");
+            imageElement.style.marginLeft = '-15px';
+        }
+
 
         linkImageContainerElement.appendChild(imageElement);
         linkElement.appendChild(linkImageContainerElement);

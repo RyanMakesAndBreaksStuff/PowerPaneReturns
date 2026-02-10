@@ -45,99 +45,99 @@ $(function () {
             },
             Popup: function () {
                 this.Parameters = [],
-                this.Header = null,
-                this.Description = null,
-                this.InlineTransition = null,
-                this.Initialize = function () {
-                    var $popup = $("#crm-power-pane-popup");
-                    $popup.find("h1").html(this.Header).toggle(this.Header != null);
-                    $popup.find("p").html(this.Description).toggle(this.Description != null);
-                    $popup.find("li").remove();
+                    this.Header = null,
+                    this.Description = null,
+                    this.InlineTransition = null,
+                    this.Initialize = function () {
+                        var $popup = $("#crm-power-pane-popup");
+                        $popup.find("h1").html(this.Header).toggle(this.Header != null);
+                        $popup.find("p").html(this.Description).toggle(this.Description != null);
+                        $popup.find("li").remove();
 
-                    $popup.unbind().keyup(function(event) {
-                        if (event.key === "Enter")
-                            $("#crm-power-pane-popup-ok") && $("#crm-power-pane-popup-ok").click();
-                        else if (event.key === "Escape")
-                            $("#crm-power-pane-popup-cancel") && $("#crm-power-pane-popup-cancel").click();
-                    });
-                    return $popup;
-                },
-                this.AddParameter = function (label, name, value) {
-                    this.Parameters[name] = {
-                        label: label,
-                        value: value || null
-                    }
-                },
-                this.RetreiveData = function (callback) {
-                    var $popup = this.Initialize();
+                        $popup.unbind().keyup(function (event) {
+                            if (event.key === "Enter")
+                                $("#crm-power-pane-popup-ok") && $("#crm-power-pane-popup-ok").click();
+                            else if (event.key === "Escape")
+                                $("#crm-power-pane-popup-cancel") && $("#crm-power-pane-popup-cancel").click();
+                        });
+                        return $popup;
+                    },
+                    this.AddParameter = function (label, name, value) {
+                        this.Parameters[name] = {
+                            label: label,
+                            value: value || null
+                        }
+                    },
+                    this.RetreiveData = function (callback) {
+                        var $popup = this.Initialize();
 
-                    $popupParameters = $popup.find("ul");
+                        $popupParameters = $popup.find("ul");
 
-                    for (var key in this.Parameters) {
-                        var p = this.Parameters[key];
-                        var defaultValue = p.value || "";
-                        $popupParameters.append("<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><input type='text' value ='" + defaultValue + "' name='" + key + "'/></li>");
-                    }
+                        for (var key in this.Parameters) {
+                            var p = this.Parameters[key];
+                            var defaultValue = p.value || "";
+                            $popupParameters.append("<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><input type='text' value ='" + defaultValue + "' name='" + key + "'/></li>");
+                        }
 
-                    $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
-                    $popup.find("input").first().focus();
-                    var $popupBg = $("#crm-power-pane-popup-bg");
-                    $popupBg.fadeIn(CrmPowerPane.Constants.SlideTime);
-                    var transition = this.InlineTransition;
-                    $("#crm-power-pane-popup-ok").unbind().click(
-                        {
-                            $popupList: $popupParameters,
-                            popupObj: this
-                        }, function (event) {
-                            if (transition != true) {
+                        $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
+                        $popup.find("input").first().focus();
+                        var $popupBg = $("#crm-power-pane-popup-bg");
+                        $popupBg.fadeIn(CrmPowerPane.Constants.SlideTime);
+                        var transition = this.InlineTransition;
+                        $("#crm-power-pane-popup-ok").unbind().click(
+                            {
+                                $popupList: $popupParameters,
+                                popupObj: this
+                            }, function (event) {
+                                if (transition != true) {
+                                    $popup.fadeOut(CrmPowerPane.Constants.SlideTime);
+                                    $popupBg.fadeOut(CrmPowerPane.Constants.SlideTime);
+                                }
+
+                                var popupObj = event.data.popupObj;
+                                var params = popupObj.Parameters;
+                                var $popupList = event.data.$popupList;
+
+                                for (var key in params) {
+                                    var p = params[key];
+                                    p.value = $popupList.find("input[name='" + key + "']").val();
+                                }
+                                callback(popupObj);
+                            });
+                    },
+                    this.ShowData = function (callback) {
+                        var $popup = this.Initialize();
+                        $popupParameters = $popup.find("ul");
+
+                        for (var key in this.Parameters) {
+                            var p = this.Parameters[key];
+                            if (Array.isArray(p.value)) {
+                                var li = "<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span>";
+                                p.value.forEach(function (item) {
+                                    var url = Xrm.Page.context.getClientUrl() + "/main.aspx?etn=" + item.entityType + "&id=" + item.id + "&pagetype=entityrecord";
+                                    li += "<li><a href='#' onclick='window.open(\"" + url + "\")'>" + item.name + "</a></li>"
+                                });
+                                li += "</li>";
+                                $popupParameters.append(li);
+                            } else {
+                                $popupParameters.append("<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><input type='text' value='" + p.value + "' name='" + key + "'/><span class='crm-power-pane-copy'>Copy it!</span></li>");
+                            }
+                        }
+
+                        $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
+                        $popup.find("input").first().focus();
+                        var $popupBg = $("#crm-power-pane-popup-bg");
+                        $popupBg.fadeIn(CrmPowerPane.Constants.SlideTime);
+
+                        $("#crm-power-pane-popup-ok").unbind().click(
+                            {
+                                $popupList: $popupParameters,
+                                params: this.Parameters
+                            }, function (event) {
                                 $popup.fadeOut(CrmPowerPane.Constants.SlideTime);
                                 $popupBg.fadeOut(CrmPowerPane.Constants.SlideTime);
-                            }
-
-                            var popupObj = event.data.popupObj;
-                            var params = popupObj.Parameters;
-                            var $popupList = event.data.$popupList;
-
-                            for (var key in params) {
-                                var p = params[key];
-                                p.value = $popupList.find("input[name='" + key + "']").val();
-                            }
-                            callback(popupObj);
-                        });
-                },
-                this.ShowData = function (callback) {
-                    var $popup = this.Initialize();
-                    $popupParameters = $popup.find("ul");
-
-                    for (var key in this.Parameters) {
-                        var p = this.Parameters[key];
-                        if (Array.isArray(p.value)) {
-                            var li = "<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span>";
-                            p.value.forEach(function(item) {
-                                var url = Xrm.Page.context.getClientUrl() + "/main.aspx?etn=" + item.entityType + "&id=" + item.id + "&pagetype=entityrecord";
-                                li += "<li><a href='#' onclick='window.open(\"" + url +"\")'>" + item.name + "</a></li>"
                             });
-                            li += "</li>";
-                            $popupParameters.append(li);
-                        } else {
-                            $popupParameters.append("<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><input type='text' value='" + p.value + "' name='" + key + "'/><span class='crm-power-pane-copy'>Copy it!</span></li>");
-                        }
                     }
-
-                    $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
-                    $popup.find("input").first().focus();
-                    var $popupBg = $("#crm-power-pane-popup-bg");
-                    $popupBg.fadeIn(CrmPowerPane.Constants.SlideTime);
-
-                    $("#crm-power-pane-popup-ok").unbind().click(
-                        {
-                            $popupList: $popupParameters,
-                            params: this.Parameters
-                        }, function (event) {
-                            $popup.fadeOut(CrmPowerPane.Constants.SlideTime);
-                            $popupBg.fadeOut(CrmPowerPane.Constants.SlideTime);
-                        });
-                }
             },
             SetButtonBackgrounds: function () {
                 var color = "#001ca5";
@@ -150,7 +150,7 @@ $(function () {
                 color = (color == "rgb(0, 32, 80)" || color == "rgb(0, 20, 51)") ? "#001ca5" : color;
 
                 //$("#crm-power-pane-button").css("background-color", color);
-        
+
                 // $(".crm-power-pane-subgroup .icon").css("background-color", color);
                 // $(".crm-power-pane-header").css("color", color);
 
@@ -226,6 +226,50 @@ $(function () {
 
                     });
             },
+
+            GetAttributesMetaData: function (entityname) {
+                var req = new XMLHttpRequest();
+                var clientURL = Xrm.Utility.getGlobalContext().getClientUrl();
+                req.open(
+                    "GET",
+                    clientURL +
+                    "/api/data/v9.0/EntityDefinitions(LogicalName='" +
+                    entityname +
+                    "')/Attributes?$filter=DisplayName ne null and AttributeOf eq null and IsValidForRead eq true and IsLogical eq false and (AttributeType ne 'Uniqueidentifier' or LogicalName eq '" +
+                    this.GetPKeyAttribute(entityname) +
+                    "') and (IsFilterable eq true or IsValidODataAttribute eq true)",
+                    false
+                );
+                req.setRequestHeader("Accept", "application/json");
+                req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+                req.setRequestHeader("OData-MaxVersion", "4.0");
+                req.setRequestHeader("OData-Version", "4.0");
+                req.setRequestHeader(
+                    "Prefer",
+                    'odata.include-annotations="OData.Community.Display.V1.FormattedValue"'
+                );
+                req.send(null);
+                return JSON.parse(req.responseText);
+            },
+            GetPKeyAttribute: function (entityname) {
+                var data = "";
+
+                function fetchData() {
+                    if (!entityname) return;
+
+                    Xrm.Utility.getEntityMetadata(entityname)
+                        .then(function (metadata) {
+                            data = metadata.PrimaryIdAttribute;
+                        })
+                        .catch(function (error) {
+                            alert("Error Trying to Find Primary Key Column - :", error);
+                        });
+                }
+
+                fetchData();
+                return data;
+            },
+
         },
         RegisterjQueryExtensions: function () {
             $.fn.bindFirst = function (name, fn) {
@@ -284,32 +328,42 @@ $(function () {
             }
 
         },
+        FormHelpers: {
+            IsCreate: function (e) {
+                return Xrm && Xrm.Page && Xrm.Page.ui && Xrm.Page.ui.getFormType && Xrm.Page.ui.getFormType() == 1;
+
+            },
+            IsUpdate: function (e) {
+                return Xrm && Xrm.Page && Xrm.Page.ui && Xrm.Page.ui.getFormType && Xrm.Page.ui.getFormType() == 2;
+
+            }
+        },
         RegisterEvents: function () {
             var Content, Xrm;
 
             var _getObjectTypeCode = function () {
 
-                    // The `etc` query string parameter is not available in UCI, so only show this
-                    // if it's available.
-                    var entityName = Xrm.Page.data.entity.getEntityName();
-                    var objectTypeCode = Xrm.Page.context.getQueryStringParameters().etc;
-                    if(!objectTypeCode) {
-                        // UCI - try getting the object type code using the internal API
-                        try {
-                            objectTypeCode = Xrm.Internal.getEntityCode(entityName);
-                        }
-                        catch (e) {
-                            /* do nothing */
-                        }
+                // The `etc` query string parameter is not available in UCI, so only show this
+                // if it's available.
+                var entityName = Xrm.Page.data.entity.getEntityName();
+                var objectTypeCode = Xrm.Page.context.getQueryStringParameters().etc;
+                if (!objectTypeCode) {
+                    // UCI - try getting the object type code using the internal API
+                    try {
+                        objectTypeCode = Xrm.Internal.getEntityCode(entityName);
                     }
+                    catch (e) {
+                        /* do nothing */
+                    }
+                }
 
-                    return objectTypeCode;
+                return objectTypeCode;
             }
 
             var _getAttributeContainer = function (attributeLogicalName) {
                 var $container = Content.$("#" + attributeLogicalName);
 
-                if(!$container.length) {
+                if (!$container.length) {
                     $container = Content.$('[data-id="' + attributeLogicalName + '"]');
                 }
 
@@ -319,7 +373,7 @@ $(function () {
             var _getLabelElement = function (attributeLogicalName) {
                 var $label = Content.$("#" + attributeLogicalName + "_c");
 
-                if(!$label.length) {
+                if (!$label.length) {
                     // Try to get the label for UCI
                     $label = Content.$("label", '[data-id="' + attributeLogicalName + '"]');
                 }
@@ -332,7 +386,7 @@ $(function () {
             var _getSelectElement = function (attributeLogicalName) {
                 var $select = Content.$('select.ms-crm-SelectBox[attrname=' + attributeLogicalName + ']');
 
-                if(!$select.length) {
+                if (!$select.length) {
                     // Try to get the dropdown for UCI
                     $select = Content.$("select", '[data-id="' + attributeLogicalName + '"]');
                 }
@@ -378,7 +432,7 @@ $(function () {
 
                     // Show object type code if known
                     var objectTypeCode = _getObjectTypeCode();
-                    if(!!objectTypeCode) {
+                    if (!!objectTypeCode) {
                         values.push({
                             label: "Entity Type Code",
                             value: objectTypeCode
@@ -386,9 +440,9 @@ $(function () {
                     }
 
                     CrmPowerPane.UI.BuildOutputPopup(
-                                    "Entity info",
-                                    "Entity schema name of current record.",
-                                    values);
+                        "Entity info",
+                        "Entity schema name of current record.",
+                        values);
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
                 }
@@ -397,12 +451,12 @@ $(function () {
             $("#record-id").click(function () {
                 try {
                     CrmPowerPane.UI.BuildOutputPopup(
-                                    "Record id",
-                                    "Guid of current record.",
-                                    [{
-                                        label: "Record Id",
-                                        value: Xrm.Page.data.entity.getId()
-                                    }]);
+                        "Record id",
+                        "Guid of current record.",
+                        [{
+                            label: "Record Id",
+                            value: Xrm.Page.data.entity.getId()
+                        }]);
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
                 }
@@ -446,7 +500,7 @@ $(function () {
                     var id = Xrm.Page.data.entity.getId();
                     var etc = _getObjectTypeCode();
 
-                    if(Content.Mscrm && Content.Mscrm.RibbonActions && Content.Mscrm.RibbonActions.openFormProperties) {
+                    if (Content.Mscrm && Content.Mscrm.RibbonActions && Content.Mscrm.RibbonActions.openFormProperties) {
                         Content.Mscrm.RibbonActions.openFormProperties(id, etc);
                     }
                     else {
@@ -456,7 +510,7 @@ $(function () {
                             height: 505
                         };
 
-                        if(Xrm.Internal.getAllowLegacyDialogsEmbedding()) {
+                        if (Xrm.Internal.getAllowLegacyDialogsEmbedding()) {
                             Xrm.Internal.openLegacyWebDialog(recordPropertiesUrl, options)
                         }
                         else {
@@ -468,33 +522,35 @@ $(function () {
                 }
             });
 
+            
+
             $("#go-to-record").click(function () {
                 try {
                     CrmPowerPane.UI.BuildInputPopup(
-                                    "Go to record",
-                                    "Redirects you to specific record by id.",
-                                    [
-                                        {
-                                            label: "Entity Schema Name",
-                                            name: "entityname"
-                                        },
-                                        {
-                                            label: "Record Id",
-                                            name: "recordid"
-                                        }
-                                    ],
-                                    function (popupObj) {
-                                        var params = popupObj.Parameters;
-                                        if (params.entityname.value && params.recordid.value) {
-                                            var linkProps = [Xrm.Page.context.getClientUrl() + "/main.aspx"];
-                                            linkProps.push("?etn=" + params.entityname.value.toLowerCase());
-                                            linkProps.push("&id=" + params.recordid.value);
-                                            linkProps.push("&pagetype=entityrecord");
-                                            window.open(linkProps.join(""), '_blank');
-                                        } else {
-                                            CrmPowerPane.UI.ShowNotification("Entity name and record guid are required. Please fill them and try again.", "warning");
-                                        }
-                                    });
+                        "Go to record",
+                        "Redirects you to specific record by id.",
+                        [
+                            {
+                                label: "Entity Schema Name",
+                                name: "entityname"
+                            },
+                            {
+                                label: "Record Id",
+                                name: "recordid"
+                            }
+                        ],
+                        function (popupObj) {
+                            var params = popupObj.Parameters;
+                            if (params.entityname.value && params.recordid.value) {
+                                var linkProps = [Xrm.Page.context.getClientUrl() + "/main.aspx"];
+                                linkProps.push("?etn=" + params.entityname.value.toLowerCase());
+                                linkProps.push("&id=" + params.recordid.value);
+                                linkProps.push("&pagetype=entityrecord");
+                                window.open(linkProps.join(""), '_blank');
+                            } else {
+                                CrmPowerPane.UI.ShowNotification("Entity name and record guid are required. Please fill them and try again.", "warning");
+                            }
+                        });
                 } catch (e) {
                     CrmPowerPane.UI.ShowNotification("An error ocurred while redirecting to specified record.", "error");
                 }
@@ -513,11 +569,13 @@ $(function () {
                         service.send(null);
                         var requestResults = JSON.parse(service.responseText).d;
                         var results = requestResults.results[0].systemuserroles_association.results;
-                        return results.map(function(r) { return {
-                            name: r.Name,
-                            id: r.RoleId,
-                            entityType: "role"
-                        }})
+                        return results.map(function (r) {
+                            return {
+                                name: r.Name,
+                                id: r.RoleId,
+                                entityType: "role"
+                            }
+                        })
                     }
                     function getUserTeams() {
                         var userId = Xrm.Page.context.getUserId();
@@ -530,37 +588,60 @@ $(function () {
                         service.send(null);
                         var requestResults = JSON.parse(service.responseText).d;
                         var results = requestResults.results[0].teammembership_association.results;
-                        return results.map(function(t) { return {
-                            name: t.Name,
-                            id: t.TeamId,
-                            entityType: "team"
-                        }})
+                        return results.map(function (t) {
+                            return {
+                                name: t.Name,
+                                id: t.TeamId,
+                                entityType: "team"
+                            }
+                        })
                     }
 
                     CrmPowerPane.UI.BuildOutputPopup(
-                                    "User Info",
-                                    "Current user information",
-                                    [{
-                                        label: "User name",
-                                        value: Xrm.Page.context.getUserName()
-                                    },
-                                    {
-                                        label: "User id",
-                                        value: Xrm.Page.context.getUserId()
-                                    },
-                                    {
-                                        label: "User Roles",
-                                        value: getUserRoles()
-                                    },
-                                    {
-                                        label: "User Teams",
-                                        value: getUserTeams()
-                                    }
-                                    ]);
+                        "User Info",
+                        "Current user information",
+                        [{
+                            label: "User name",
+                            value: Xrm.Page.context.getUserName()
+                        },
+                        {
+                            label: "User id",
+                            value: Xrm.Page.context.getUserId()
+                        },
+                        {
+                            label: "User Roles",
+                            value: getUserRoles()
+                        },
+                        {
+                            label: "User Teams",
+                            value: getUserTeams()
+                        }
+                        ]);
                 } catch (e) {
-                    CrmPowerPane.UI.ShowNotification("An error occurred while getting the user information.","error");
+                    CrmPowerPane.UI.ShowNotification("An error occurred while getting the user information.", "error");
                 }
             });
+            
+
+            $("#advanced_find").click(function () {
+
+				let clientUrlForParams = Xrm.Page.context.getClientUrl();
+				clientUrlForParams += (Xrm.Page.context.getClientUrl().indexOf('appid') > -1 ? '&' : '/main.aspx?');
+
+				if (!Xrm.Page.data || !Xrm.Page.data.entity) {
+					window.open(`${clientUrlForParams}pagetype=advancedfind`, '_blank');
+				} else {
+					let entityName = Xrm.Page.data.entity.getEntityName();
+					window.open(
+						`${clientUrlForParams}extraqs=EntityCode%3d${Xrm.Internal.getEntityCode(
+							entityName
+						)}&pagetype=advancedfind`,
+						'_blank'
+					);
+				}
+
+			});
+
 
             $("#enable-all-fields").click(function () {
                 try {
@@ -644,9 +725,9 @@ $(function () {
                                 }
                         } catch (e) { }
                     });
-                    if(updateStatus == "update")
+                    if (updateStatus == "update")
                         CrmPowerPane.UI.ShowNotification("All labels updated to schema name.");
-                    else if(updateStatus == "rollback")
+                    else if (updateStatus == "rollback")
                         CrmPowerPane.UI.ShowNotification("Schema name updates rolled back.");
 
                     updateStatus = null;
@@ -660,12 +741,11 @@ $(function () {
                 try {
                     var responsibleControls = ["standard", "optionset", "lookup"];
                     Xrm.Page.ui.controls.forEach(function (control) {
-                        if (responsibleControls.indexOf(control.getControlType()) > -1)
-                        {
+                        if (responsibleControls.indexOf(control.getControlType()) > -1) {
                             var attributeLogicalName = control.getName(),
-                            attributeLabel = control.getLabel(),
-                            $label = _getLabelElement(attributeLogicalName)
-                            if($label) {
+                                attributeLabel = control.getLabel(),
+                                $label = _getLabelElement(attributeLogicalName)
+                            if ($label) {
                                 $label.attr("title", attributeLogicalName), $label.off("click").click(function () {
                                     var canCopy = document.queryCommandSupported("copy");
                                     if (canCopy) {
@@ -702,7 +782,7 @@ $(function () {
                                 if (!a._$originalLabel) {
                                     a._$originalLabel = a.getLabel();
                                     var newLabel = `${a.getLabel()} [${a.getName()}]`;
-                                 a.setLabel(newLabel);
+                                    a.setLabel(newLabel);
                                     updateStatus = "update";
                                 }
                                 else {
@@ -712,9 +792,9 @@ $(function () {
                                 }
                         } catch (e) { }
                     });
-                    if(updateStatus == "update")
+                    if (updateStatus == "update")
                         CrmPowerPane.UI.ShowNotification("Added schema names in brackets.");
-                    else if(updateStatus == "rollback")
+                    else if (updateStatus == "rollback")
                         CrmPowerPane.UI.ShowNotification("Removed schema names in brackets.");
 
                     updateStatus = null;
@@ -855,36 +935,339 @@ $(function () {
             $("#open-entity-editor").click(function () {
                 try {
                     CrmPowerPane.UI.BuildInputPopup(
-                                    "Open entity editor",
-                                    "Opens entity editor according the specified entity.",
-                                    [
-                                        {
-                                            label: "Entity Schema Name (optional)",
-                                            name: "entityname",
-                                            defaultValue: (Xrm && Xrm.Page
-                                                            && Xrm.Page.data
-                                                            && Xrm.Page.data.entity
-                                                            && Xrm.Page.data.entity.getEntityName) ? Xrm.Page.data.entity.getEntityName() : null
-                                        }
-                                    ],
-                                    function (popupObj) {
-                                        var entityDetail = "";
-                                        var entityName = popupObj.Parameters.entityname.value;
-                                        if (entityName && entityName.trim() != "") {
-                                            var entityTypeCode = Xrm.Internal.getEntityCode(entityName);
-                                            var entitiesCategoryCode = 9801; // undocumented
-                                            entityDetail = "&def_category=" + entitiesCategoryCode + "&def_type=" + entityTypeCode
-                                        }
+                        "Open entity editor",
+                        "Opens entity editor according the specified entity.",
+                        [
+                            {
+                                label: "Entity Schema Name (optional)",
+                                name: "entityname",
+                                defaultValue: (Xrm && Xrm.Page
+                                    && Xrm.Page.data
+                                    && Xrm.Page.data.entity
+                                    && Xrm.Page.data.entity.getEntityName) ? Xrm.Page.data.entity.getEntityName() : null
+                            }
+                        ],
+                        function (popupObj) {
+                            var entityDetail = "";
+                            var entityName = popupObj.Parameters.entityname.value;
+                            if (entityName && entityName.trim() != "") {
+                                var entityTypeCode = Xrm.Internal.getEntityCode(entityName);
+                                var entitiesCategoryCode = 9801; // undocumented
+                                entityDetail = "&def_category=" + entitiesCategoryCode + "&def_type=" + entityTypeCode
+                            }
 
-                                        // ref https://docs.microsoft.com/en-us/previous-versions/dynamicscrm-2016/developers-guide/gg328257(v=crm.8)?redirectedfrom=MSDN#constant-solutionid-values
-                                        var defaultSolutionId = "{FD140AAF-4DF4-11DD-BD17-0019B9312238}";
+                            // ref https://docs.microsoft.com/en-us/previous-versions/dynamicscrm-2016/developers-guide/gg328257(v=crm.8)?redirectedfrom=MSDN#constant-solutionid-values
+                            var defaultSolutionId = "{FD140AAF-4DF4-11DD-BD17-0019B9312238}";
 
-                                        window.open(Content.Xrm.Page.context.getClientUrl() + "/tools/solution/edit.aspx?id=" + defaultSolutionId + entityDetail);
-                                    });
+                            window.open(Content.Xrm.Page.context.getClientUrl() + "/tools/solution/edit.aspx?id=" + defaultSolutionId + entityDetail);
+                        });
                 } catch (e) {
                     CrmPowerPane.UI.ShowNotification("An error ocurred while redirecting to entity editor.", "error");
                 }
             });
+
+	$("#clear_all_fields").click(function () {
+				const attributes = Xrm.Page.data.entity.attributes.get();
+				let count = 0;
+				for (const attribute of attributes) {
+
+
+					attribute.setValue(null);
+					count++;
+				}
+
+				CrmPowerPane.UI.ShowNotification("All fields are cleared", "info");
+
+
+			});
+
+		
+			let attributeMetadata = null;
+
+
+			function onClickField(event) {
+				const controlName = (event.currentTarget)?.parentElement?.getAttribute('data-control-name');
+				if (!controlName) return;
+				//console.log("onClickField" + controlName)
+				//console.log("onClickField attributeMetadata", attributeMetadata)
+				const metadata = attributeMetadata.value.find(meta => meta.LogicalName === controlName);
+				//console.log("onClickField metadata", metadata)
+
+				if (metadata && metadata['AttributeType']) {
+
+					const randomValue = getRandomValue(Xrm.Page.getAttribute(controlName), metadata);
+					//console.log("onClickField randomValue for " + controlName, randomValue)
+					console.log("onClickField randomValue for " + controlName, randomValue)
+
+					if (randomValue !== undefined) {
+						Xrm.Page.getAttribute(controlName).setValue(randomValue);
+
+					}
+				}
+
+			}
+
+			$("#fill_all_fields").click(function () {
+
+				try {
+
+
+
+					const attributes = Xrm.Page.data.entity.attributes.get();
+					const attributeMetadata = RetrieveAttributesMetaData(Xrm.Page.data.entity.getEntityName());
+
+					for (const attribute of attributes) {
+
+						const metadata = attributeMetadata.value.find(meta => meta.LogicalName === attribute.getName());
+
+						if (!attribute.getValue() && metadata != undefined && metadata['AttributeType']) {
+
+							const randomValue = getRandomValue(attribute, metadata);
+
+							//console.log("RANDOM FOUND " + attribute._attributeName, randomValue)
+
+							if (randomValue !== undefined) {
+								attribute.setValue(randomValue);
+							}
+						}
+
+					}
+					CrmPowerPane.UI.ShowNotification("All fields are filled", "info");
+
+
+				} catch (e) {
+				}
+
+
+			});
+
+			function getRandomValue(attribute, metadata) {
+
+
+				switch (metadata['AttributeType']) {
+					case "Lookup":
+						getRandomLookup(attribute, metadata);
+						return undefined;
+					case "String":
+					case "Memo":
+						return getRandomString(metadata.MaxLength, metadata.Format);
+					case "Decimal":
+					case "Double":
+					case "Money":
+					case "Integer":
+					case "BigInt":
+						return getRandomNumber(metadata.MinValue, metadata.MaxValue, metadata.Precision);
+					case "DateTime":
+						return getRandomDate(metadata.Format);
+					case "Boolean":
+					case "Status":
+					case "State":
+					case "Picklist":
+					case "MultiSelectPicklist":
+						return getRandomPickList(attribute, metadata);
+
+
+					case "Uniqueidentifier":
+					case "Null":
+						return null;
+				}
+			}
+
+
+
+
+			function getRandomNumber(minValue, maxValue, precision) {
+				if (precision === void 0) { precision = 0; }
+				var number = minValue + Math.random() * (maxValue - minValue);
+				return Number(number.toFixed(precision));
+			}
+
+			function getRandomString(maxLength, format) {
+				switch (format) {
+					case "Email":
+
+						return getRandomStringGenerator(Math.min((maxLength / 3), 15), false, true) + "@" +
+							getRandomStringGenerator(Math.min((maxLength / 3), 10), false, true) + "." +
+							getRandomStringGenerator(getRandomNumber(2, 3), false, true);
+					case "Phone":
+					case "Text":
+					case "TextArea":
+					case "TickerSymbol":
+						return getRandomStringGenerator(Math.min((maxLength / 3), 50), true);
+					case "URL":
+						return "www." +
+							getRandomStringGenerator(Math.min((maxLength / 3), 20)) + "." +
+							getRandomStringGenerator(3);
+				}
+				return '';
+			}
+
+			function getRandomStringGenerator(maxLength, allowSpaces = false, forceLowerCase = false) {
+				const length = maxLength;
+
+				const characters = 'bcdfghjklmnpqrstvwxyz';
+				const vowels = "aeiou";
+				const charactersLength = characters.length;
+				const vowelsLength = vowels.length;
+
+				let result = '';
+				let counter = 0;
+				let nextCharIsVowel = false;
+				while (counter < length) {
+
+					if (allowSpaces && Math.random() < 0.1 && counter < length - 3 && result.at(-1) !== ' ') {
+						result += ' ';
+					}
+					else {
+						nextCharIsVowel = characters.includes(result.at(-1) ?? ' ') || (result.at(-1) === ' ' && Math.random() < 0.4);
+						if (nextCharIsVowel)
+							result += vowels.charAt(Math.floor(Math.random() * vowelsLength));
+						else
+							result += characters.charAt(Math.floor(Math.random() * charactersLength));
+					}
+					counter += 1;
+				}
+				if (!forceLowerCase) {
+					const arr = result.split(' ');
+					for (var i = 0; i < arr.length; i++) {
+						arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
+					}
+					return arr.join(' ');
+				}
+				else {
+					return result;
+				}
+			}
+
+
+			function getRandomPickList(attribute, me) {
+				// Retrieve the OptionSet control using the control name
+				var optionSetControl = Xrm.Page.getControl(attribute.getName());
+
+				// Check if the control exists and is an OptionSet control
+				if (optionSetControl && optionSetControl.getControlType() === "optionset") {
+					// Retrieve the options available in the OptionSet
+					var options = optionSetControl.getOptions();
+					console.log("alloptions", options);
+					var optionSetValues = [];
+
+					// Iterate over the options and store their values
+					for (var i = 0; i < options.length; i++) {
+						optionSetValues.push(options[i].value);
+					}
+
+					// Generate a random index within the bounds of the optionSetValues array
+					var randomIndex = Math.floor(Math.random() * optionSetValues.length);
+
+					// Return the randomly selected value
+					return optionSetValues[randomIndex];
+				}
+			}
+
+
+			async function getRandomLookup(attribute, target) {
+
+				const EntityLogicalName = target.Targets[0];
+				console.log("getRandomLookup for " + EntityLogicalName)
+
+				var randomIndex = getRandomNumber(1, 5);
+				var primaryIdAttribute = EntityLogicalName + "id";//await Xrm.Utility.getEntityMetadata(target.LogicalName, [target.LogicalName +""])""
+
+				console.log("getRandomLookup primaryIdAttribute =" + primaryIdAttribute)
+
+
+				//console.log("getRandomLookup primaryIdAttribute", primaryIdAttribute)
+
+				var primaryNameAttribute = (await Xrm.Utility.getEntityMetadata(EntityLogicalName)).PrimaryNameAttribute;
+				console.log("getRandomLookup primaryNameAttribute =" + primaryNameAttribute)
+
+				var record = (await Xrm.WebApi.online.retrieveMultipleRecords(EntityLogicalName, "?$select=" + primaryIdAttribute + "," + primaryNameAttribute, randomIndex)).entities[randomIndex - 1];
+				if (!record) {
+					return null;
+
+				}
+
+				var lookup_found = [{
+					id: record[primaryIdAttribute],
+					name: record[primaryNameAttribute],
+					entityType: EntityLogicalName,
+				}]
+				console.log("getRandomLookup lookup_found =", lookup_found)
+				console.log("getRandomLookup lookup_found attribute=", attribute)
+
+				attribute.setValue(lookup_found);
+
+				//console.log("getRandomLookup recfou", lookup_found)
+				//return [{
+				//	id: record[primaryIdAttribute],
+				//	name: record[primaryNameAttribute],
+				//	entityType: EntityLogicalName,
+				//}];
+			}
+
+			function getRandomDate(format) {
+				var start = new Date(1753, 1, 1);
+				var end = new Date(9999, 12, 31);
+				return new Date(getRandomNumber(start.getTime(), end.getTime()));
+			}
+			//#endregion fill all fields
+
+
+			$("#required_fields").click(function () {
+				if (CrmPowerPane.Utils.canNotExecute()) { return; }
+
+				try {
+
+
+					Xrm.Page.data.entity.attributes.forEach((a) => {
+						if (a.getRequiredLevel() === 'required' && !a.getValue()) {
+
+
+
+							switch (a.getAttributeType()) {
+
+
+								case 'memo':
+									a.setValue('memo');
+									break;
+								case 'string':
+									a.setValue(a.getName());
+
+									if (a.getName() === "emailaddress1") {
+										a.setValue("test@mail.local");
+									}
+
+									if (a.getName() === "telephone1") {
+										a.setValue("+32470000000");
+									}
+									break;
+								case 'boolean':
+									a.setValue(false);
+									break;
+								case 'datetime':
+									a.setValue(new Date());
+									break;
+								case 'decimal':
+								case 'double':
+								case 'integer':
+								case 'money':
+									a.setValue((a).getMin());
+									break;
+								case 'optionset':
+
+									a.setValue((a).getOptions()[0].value);
+									break;
+							}
+						}
+					});
+
+					CrmPowerPane.UI.ShowNotification("All required fields are filled");
+
+				} catch (e) {
+					CrmPowerPane.UI.ShowNotification("An error occured opening the Web API URL for this record.");
+				}
+			});
+
 
             $("#show-field-value").click(function () {
                 try {
@@ -1148,8 +1531,8 @@ $(function () {
                     dataType: "text",
                     processData: false,
                     success: function (data, status, req) {
-                            $resultArea.val(CrmPowerPane.Utils.PrettifyXml(data));
-                            $("#crm-power-pane-fetchxml-popup-container ul li").eq($resultArea.parent().index()).trigger("click");
+                        $resultArea.val(CrmPowerPane.Utils.PrettifyXml(data));
+                        $("#crm-power-pane-fetchxml-popup-container ul li").eq($resultArea.parent().index()).trigger("click");
                     },
                     error: function (err) {
                         var errorDetails = err.statusText + "\n";
@@ -1163,7 +1546,7 @@ $(function () {
             });
 
             $("#solutions").click(function () {
-                window.open(Xrm.Page.context.getClientUrl() +"/tools/Solution/home_solution.aspx?etc=7100" , '_blank');
+                window.open(Xrm.Page.context.getClientUrl() + "/tools/Solution/home_solution.aspx?etc=7100", '_blank');
             });
 
             $("#go-to-create-form").click(function () {
@@ -1194,7 +1577,7 @@ $(function () {
                 }
             });
 
-            $("#open-form-editor").click(function () {
+            $("#open-legacy-editor").click(function () {
                 try {
                     var params = [Xrm.Page.context.getClientUrl() + "/main.aspx"];
                     params.push("?pagetype=formeditor");
@@ -1208,24 +1591,64 @@ $(function () {
                 }
             });
 
+            $("#open-new-editor").click(function () {
+                //if (CrmPowerPane.Utils.canNotExecute(true)) { return; }
+
+                try {
+                    const temp = RetrieveWithCustomFilterXXX("RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')");
+                    const environmentId = temp["Detail"]["EnvironmentId"];
+
+                    window.open(
+                        `https://make.powerapps.com/e/${environmentId}/s/00000001-0000-0000-0001-00000000009b/entity/${Xrm.Page.data.entity.getEntityName().toLowerCase()}/form/edit/${Xrm.Page.ui.formSelector.getCurrentItem().getId()}?source=powerappsportal`,
+                        '_blank'
+                    );
+
+                } catch (e) {
+                    CrmPowerPane.UI.ShowNotification("An error ocurred while redirecting to form editor.", "error");
+                }
+            });
+
+
             $("#open-webapi").click(function () {
                 try {
                     var apiVersion = Xrm.Utility.getGlobalContext().getVersion();
-                    var shortVersion= apiVersion.substring(3, apiVersion.indexOf(".") -1);
+                    var shortVersion = apiVersion.substring(3, apiVersion.indexOf(".") - 1);
 
-                    Xrm.Utility.getEntityMetadata(Xrm.Page.data.entity.getEntityName(),"")
-                    .then(function(result){
-                        var url = Xrm.Page.context.getClientUrl() + "/api/data/v" + shortVersion + "/" + result.EntitySetName +"(" + Xrm.Page.data.entity.getId() + ")";
-                        url = url.replace("{", "").replace("}","");
-                        window.open(url,'_blank');
-                    });
+                    Xrm.Utility.getEntityMetadata(Xrm.Page.data.entity.getEntityName(), "")
+                        .then(function (result) {
+                            var url = Xrm.Page.context.getClientUrl() + "/api/data/v" + shortVersion + "/" + result.EntitySetName + "(" + Xrm.Page.data.entity.getId() + ")";
+                            url = url.replace("{", "").replace("}", "");
+                            window.open(url, '_blank');
+                        });
 
-                    } catch (e) {
-                        CrmPowerPane.UI.ShowNotification("An error occured opening the Web API URL for this record.");
-                    }
-                });
-            }
-        };
+                } catch (e) {
+                    CrmPowerPane.UI.ShowNotification("An error occured opening the Web API URL for this record.", "error");
+                }
+            });
+
+
+            $("#advanced_find").click(function () {
+
+                let clientUrlForParams = Xrm.Page.context.getClientUrl();
+                clientUrlForParams += (Xrm.Page.context.getClientUrl().indexOf('appid') > -1 ? '&' : '/main.aspx?');
+
+                if (!Xrm.Page.data || !Xrm.Page.data.entity) {
+                    window.open(`${clientUrlForParams}pagetype=advancedfind`, '_blank');
+                } else {
+                    let entityName = Xrm.Page.data.entity.getEntityName();
+                    window.open(
+                        `${clientUrlForParams}extraqs=EntityCode%3d${Xrm.Internal.getEntityCode(
+                            entityName
+                        )}&pagetype=advancedfind`,
+                        '_blank'
+                    );
+                }
+
+            });
+
+        }
+
+    };
 
     CrmPowerPane.UI.SetButtonBackgrounds();
     CrmPowerPane.RegisterjQueryExtensions();
