@@ -70,8 +70,7 @@ $(function () {
                     },
                     this.RetreiveData = function (callback) {
                         var $popup = this.Initialize();
-
-                        $popupParameters = $popup.find("ul");
+                        var $popupParameters = $popup.find("ul");
 
                         for (var key in this.Parameters) {
                             var p = this.Parameters[key];
@@ -107,7 +106,7 @@ $(function () {
                     },
                     this.ShowData = function (callback) {
                         var $popup = this.Initialize();
-                        $popupParameters = $popup.find("ul");
+                        var $popupParameters = $popup.find("ul");
 
                         for (var key in this.Parameters) {
                             var p = this.Parameters[key];
@@ -177,6 +176,23 @@ $(function () {
                 var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
                 var resultXml = new XMLSerializer().serializeToString(resultDoc);
                 return resultXml;
+            },
+            canNotExecute: function (requireForm) {
+                try {
+                    var xrm = CrmPowerPane.TargetFrame.GetXrm();
+                    if (!xrm || !xrm.Page) {
+                        CrmPowerPane.Errors.WrongPageWarning();
+                        return true;
+                    }
+                    if (requireForm && (!xrm.Page.ui || xrm.Page.ui.getFormType() === 0)) {
+                        CrmPowerPane.Errors.WrongPageWarning();
+                        return true;
+                    }
+                    return false;
+                } catch (e) {
+                    CrmPowerPane.Errors.WrongPageWarning();
+                    return true;
+                }
             }
         },
         ServiceOperations: {
@@ -230,13 +246,14 @@ $(function () {
             GetAttributesMetaData: function (entityname) {
                 var req = new XMLHttpRequest();
                 var clientURL = Xrm.Utility.getGlobalContext().getClientUrl();
+                var pkey = this.GetPKeyAttribute(entityname);
                 req.open(
                     "GET",
                     clientURL +
                     "/api/data/v9.0/EntityDefinitions(LogicalName='" +
                     entityname +
                     "')/Attributes?$filter=DisplayName ne null and AttributeOf eq null and IsValidForRead eq true and IsLogical eq false and (AttributeType ne 'Uniqueidentifier' or LogicalName eq '" +
-                    this.GetPKeyAttribute(entityname) +
+                    pkey +
                     "') and (IsFilterable eq true or IsValidODataAttribute eq true)",
                     false
                 );
@@ -252,22 +269,21 @@ $(function () {
                 return JSON.parse(req.responseText);
             },
             GetPKeyAttribute: function (entityname) {
-                var data = "";
-
-                function fetchData() {
-                    if (!entityname) return;
-
-                    Xrm.Utility.getEntityMetadata(entityname)
-                        .then(function (metadata) {
-                            data = metadata.PrimaryIdAttribute;
-                        })
-                        .catch(function (error) {
-                            alert("Error Trying to Find Primary Key Column - :", error);
-                        });
-                }
-
-                fetchData();
-                return data;
+                // Synchronous approach - use convention since the async metadata
+                // call cannot return synchronously
+                if (!entityname) return "";
+                return entityname + "id";
+            },
+            RetrieveWithCustomFilter: function (functionName) {
+                var req = new XMLHttpRequest();
+                var clientURL = Xrm.Utility.getGlobalContext().getClientUrl();
+                req.open("GET", clientURL + "/api/data/v9.0/" + functionName, false);
+                req.setRequestHeader("Accept", "application/json");
+                req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+                req.setRequestHeader("OData-MaxVersion", "4.0");
+                req.setRequestHeader("OData-Version", "4.0");
+                req.send(null);
+                return JSON.parse(req.responseText);
             },
 
         },
@@ -392,6 +408,28 @@ $(function () {
                 }
 
                 return $select;
+            };
+
+            // --- Helper: copy text to clipboard (modern API with fallback) ---
+            var _copyToClipboard = function (text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text).then(function () {
+                        return true;
+                    }).catch(function () {
+                        return false;
+                    });
+                }
+                // Fallback
+                var ta = document.createElement("textarea");
+                ta.value = text;
+                ta.style.position = "fixed";
+                ta.style.left = "-9999px";
+                document.body.appendChild(ta);
+                ta.select();
+                var ok = false;
+                try { ok = document.execCommand("copy"); } catch (e) { /* ignore */ }
+                ta.remove();
+                return Promise.resolve(ok);
             };
 
             $(".crm-power-pane-subgroup").bindFirst('click', function () {
@@ -522,7 +560,7 @@ $(function () {
                 }
             });
 
-            
+
 
             $("#go-to-record").click(function () {
                 try {
@@ -621,26 +659,27 @@ $(function () {
                     CrmPowerPane.UI.ShowNotification("An error occurred while getting the user information.", "error");
                 }
             });
-            
+
 
             $("#advanced_find").click(function () {
 
-				let clientUrlForParams = Xrm.Page.context.getClientUrl();
-				clientUrlForParams += (Xrm.Page.context.getClientUrl().indexOf('appid') > -1 ? '&' : '/main.aspx?');
+                let clientUrlForParams = Xrm.Page.context.getClientUrl();
+                clientUrlForParams += (Xrm.Page.context.getClientUrl().indexOf('appid') > -1 ? '&' : '/main.aspx?');
 
-				if (!Xrm.Page.data || !Xrm.Page.data.entity) {
-					window.open(`${clientUrlForParams}pagetype=advancedfind`, '_blank');
-				} else {
-					let entityName = Xrm.Page.data.entity.getEntityName();
-					window.open(
-						`${clientUrlForParams}extraqs=EntityCode%3d${Xrm.Internal.getEntityCode(
-							entityName
-						)}&pagetype=advancedfind`,
-						'_blank'
-					);
-				}
+                if (!Xrm.Page.data || !Xrm.Page.data.entity) {
+                    window.open(`${clientUrlForParams}pagetype=advancedfind`, '_blank');
+                } else {
+                    let entityName = Xrm.Page.data.entity.getEntityName();
+                    window.open(
+                        `${clientUrlForParams}extraqs=EntityCode%3d${Xrm.Internal.getEntityCode(
+                            entityName
+                        )}&pagetype=advancedfind`,
+                        '_blank'
+                    );
+                }
 
-			});
+            });
+
 
 
             $("#enable-all-fields").click(function () {
@@ -742,32 +781,26 @@ $(function () {
                     var responsibleControls = ["standard", "optionset", "lookup"];
                     Xrm.Page.ui.controls.forEach(function (control) {
                         if (responsibleControls.indexOf(control.getControlType()) > -1) {
-                            var attributeLogicalName = control.getName(),
-                                attributeLabel = control.getLabel(),
-                                $label = _getLabelElement(attributeLogicalName)
+                            var attributeLogicalName = control.getName();
+                            var $label = _getLabelElement(attributeLogicalName);
                             if ($label) {
-                                $label.attr("title", attributeLogicalName), $label.off("click").click(function () {
-                                    var canCopy = document.queryCommandSupported("copy");
-                                    if (canCopy) {
-                                        var tempTextArea = document.createElement("textarea");
-                                        tempTextArea.style.position = "absolute", tempTextArea.style.top = -9999, tempTextArea.style.left = -9999, tempTextArea.style.width = "2em", tempTextArea.style.height = "2em", tempTextArea.style.padding = 0, tempTextArea.style.border = "none", tempTextArea.style.outline = "none", tempTextArea.style.boxShadow = "none", tempTextArea.style.background = "transparent", tempTextArea.value = attributeLogicalName, document.body.appendChild(tempTextArea), tempTextArea.select();
-                                        try {
-                                            var didCopy = document.execCommand("copy");
-                                            if (didCopy) {
-                                                CrmPowerPane.UI.ShowNotification("Copied <b>\"" + attributeLogicalName + "\"</b> to clipboard.", "success");
-                                            } else {
-                                                CrmPowerPane.UI.ShowNotification("Copying failed. Please copy it yourself.", "error");
-                                            }
-                                        } catch (i) {
-                                            console.log("Oops, unable to copy")
+                                $label.attr("title", attributeLogicalName);
+                                $label.off("click").click(function () {
+                                    _copyToClipboard(attributeLogicalName).then(function (ok) {
+                                        if (ok) {
+                                            CrmPowerPane.UI.ShowNotification(
+                                                "Copied <b>\"" + attributeLogicalName + "\"</b> to clipboard.",
+                                                "success"
+                                            );
+                                        } else {
+                                            CrmPowerPane.UI.ShowNotification("Copying failed. Please copy it yourself.", "error");
                                         }
-                                        tempTextArea.remove();
-                                    } else prompt("Copying is not supported. Please copy it yourself. " + attributeLabel, attributeLogicalName)
-                                })
+                                    });
+                                });
                             }
                         }
                     });
-                    CrmPowerPane.UI.ShowNotification("Schema name mode is activated for descriptions. You can copy it with label click."); // ui message will change
+                    CrmPowerPane.UI.ShowNotification("Schema name mode is activated for descriptions. You can copy it with label click.");
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
                 }
@@ -847,48 +880,41 @@ $(function () {
             });
 
             $("#show-optionset-values").click(function () {
-
                 try {
+                    var overallStatus = null;
                     Xrm.Page.ui.controls.forEach(function (control) {
-                        if (control.getControlType && control.getControlType() == "optionset") {
+                        if (control.getControlType && control.getControlType() === "optionset") {
                             var name = control.getName();
-                            var $selectBox = _getSelectElement(name)
-
+                            var $selectBox = _getSelectElement(name);
                             var $options = ($selectBox) ? $selectBox.find("option") : null;
 
                             if ($options && $options.length > 0) {
-
-                                var changedOrReverted = null;
-
                                 for (var i = 0; i < $options.length; i++) {
                                     var $opt = $options[i];
-                                    if ($opt.text != "" && $opt.value != "") {
+                                    if ($opt.text !== "" && $opt.value !== "") {
                                         var exp = "#" + $opt.value + "# ";
                                         if ($opt.text.indexOf(exp) > -1) {
                                             $opt.text = $opt.text.replace(exp, "");
                                             $opt.title = $opt.title.replace(exp, "");
-                                            changedOrReverted = "reverted";
+                                            overallStatus = "reverted";
                                         } else {
                                             $opt.text = "#" + $opt.value + "# " + $opt.text;
                                             $opt.title = "#" + $opt.value + "# " + $opt.title;
-                                            changedOrReverted = "changed";
+                                            overallStatus = "changed";
                                         }
                                     }
-
-                                    if (changedOrReverted == "changed") {
-                                        CrmPowerPane.UI.ShowNotification("Added value property to the option labels for all optionset. Like that <b>#value#</b>");
-                                    } else if (changedOrReverted == "reverted") {
-                                        CrmPowerPane.UI.ShowNotification("Removed value property from the option labels for all optionset.", "error");
-                                    }
-
                                 }
                             }
                         }
                     });
+                    if (overallStatus === "changed") {
+                        CrmPowerPane.UI.ShowNotification("Added value property to the option labels for all optionsets. Like that <b>#value#</b>");
+                    } else if (overallStatus === "reverted") {
+                        CrmPowerPane.UI.ShowNotification("Removed value property from the option labels for all optionsets.");
+                    }
                 } catch (e) {
                     CrmPowerPane.Errors.WrongPageWarning();
                 }
-
             });
 
             $("#crm-diagnostics").click(function () {
@@ -966,307 +992,265 @@ $(function () {
                 }
             });
 
-	$("#clear_all_fields").click(function () {
-				const attributes = Xrm.Page.data.entity.attributes.get();
-				let count = 0;
-				for (const attribute of attributes) {
-
-
-					attribute.setValue(null);
-					count++;
-				}
-
-				CrmPowerPane.UI.ShowNotification("All fields are cleared", "info");
-
-
-			});
-
-		
-			let attributeMetadata = null;
-
-
-			function onClickField(event) {
-				const controlName = (event.currentTarget)?.parentElement?.getAttribute('data-control-name');
-				if (!controlName) return;
-				//console.log("onClickField" + controlName)
-				//console.log("onClickField attributeMetadata", attributeMetadata)
-				const metadata = attributeMetadata.value.find(meta => meta.LogicalName === controlName);
-				//console.log("onClickField metadata", metadata)
-
-				if (metadata && metadata['AttributeType']) {
-
-					const randomValue = getRandomValue(Xrm.Page.getAttribute(controlName), metadata);
-					//console.log("onClickField randomValue for " + controlName, randomValue)
-					console.log("onClickField randomValue for " + controlName, randomValue)
-
-					if (randomValue !== undefined) {
-						Xrm.Page.getAttribute(controlName).setValue(randomValue);
-
-					}
-				}
-
-			}
-
-			$("#fill_all_fields").click(function () {
-
-				try {
-
-
-
-					const attributes = Xrm.Page.data.entity.attributes.get();
-					const attributeMetadata = RetrieveAttributesMetaData(Xrm.Page.data.entity.getEntityName());
-
-					for (const attribute of attributes) {
-
-						const metadata = attributeMetadata.value.find(meta => meta.LogicalName === attribute.getName());
-
-						if (!attribute.getValue() && metadata != undefined && metadata['AttributeType']) {
-
-							const randomValue = getRandomValue(attribute, metadata);
-
-							//console.log("RANDOM FOUND " + attribute._attributeName, randomValue)
-
-							if (randomValue !== undefined) {
-								attribute.setValue(randomValue);
-							}
-						}
-
-					}
-					CrmPowerPane.UI.ShowNotification("All fields are filled", "info");
-
-
-				} catch (e) {
-				}
-
-
-			});
-
-			function getRandomValue(attribute, metadata) {
-
-
-				switch (metadata['AttributeType']) {
-					case "Lookup":
-						getRandomLookup(attribute, metadata);
-						return undefined;
-					case "String":
-					case "Memo":
-						return getRandomString(metadata.MaxLength, metadata.Format);
-					case "Decimal":
-					case "Double":
-					case "Money":
-					case "Integer":
-					case "BigInt":
-						return getRandomNumber(metadata.MinValue, metadata.MaxValue, metadata.Precision);
-					case "DateTime":
-						return getRandomDate(metadata.Format);
-					case "Boolean":
-					case "Status":
-					case "State":
-					case "Picklist":
-					case "MultiSelectPicklist":
-						return getRandomPickList(attribute, metadata);
-
-
-					case "Uniqueidentifier":
-					case "Null":
-						return null;
-				}
-			}
-
-
-
-
-			function getRandomNumber(minValue, maxValue, precision) {
-				if (precision === void 0) { precision = 0; }
-				var number = minValue + Math.random() * (maxValue - minValue);
-				return Number(number.toFixed(precision));
-			}
-
-			function getRandomString(maxLength, format) {
-				switch (format) {
-					case "Email":
-
-						return getRandomStringGenerator(Math.min((maxLength / 3), 15), false, true) + "@" +
-							getRandomStringGenerator(Math.min((maxLength / 3), 10), false, true) + "." +
-							getRandomStringGenerator(getRandomNumber(2, 3), false, true);
-					case "Phone":
-					case "Text":
-					case "TextArea":
-					case "TickerSymbol":
-						return getRandomStringGenerator(Math.min((maxLength / 3), 50), true);
-					case "URL":
-						return "www." +
-							getRandomStringGenerator(Math.min((maxLength / 3), 20)) + "." +
-							getRandomStringGenerator(3);
-				}
-				return '';
-			}
-
-			function getRandomStringGenerator(maxLength, allowSpaces = false, forceLowerCase = false) {
-				const length = maxLength;
-
-				const characters = 'bcdfghjklmnpqrstvwxyz';
-				const vowels = "aeiou";
-				const charactersLength = characters.length;
-				const vowelsLength = vowels.length;
-
-				let result = '';
-				let counter = 0;
-				let nextCharIsVowel = false;
-				while (counter < length) {
-
-					if (allowSpaces && Math.random() < 0.1 && counter < length - 3 && result.at(-1) !== ' ') {
-						result += ' ';
-					}
-					else {
-						nextCharIsVowel = characters.includes(result.at(-1) ?? ' ') || (result.at(-1) === ' ' && Math.random() < 0.4);
-						if (nextCharIsVowel)
-							result += vowels.charAt(Math.floor(Math.random() * vowelsLength));
-						else
-							result += characters.charAt(Math.floor(Math.random() * charactersLength));
-					}
-					counter += 1;
-				}
-				if (!forceLowerCase) {
-					const arr = result.split(' ');
-					for (var i = 0; i < arr.length; i++) {
-						arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
-					}
-					return arr.join(' ');
-				}
-				else {
-					return result;
-				}
-			}
-
-
-			function getRandomPickList(attribute, me) {
-				// Retrieve the OptionSet control using the control name
-				var optionSetControl = Xrm.Page.getControl(attribute.getName());
-
-				// Check if the control exists and is an OptionSet control
-				if (optionSetControl && optionSetControl.getControlType() === "optionset") {
-					// Retrieve the options available in the OptionSet
-					var options = optionSetControl.getOptions();
-					console.log("alloptions", options);
-					var optionSetValues = [];
-
-					// Iterate over the options and store their values
-					for (var i = 0; i < options.length; i++) {
-						optionSetValues.push(options[i].value);
-					}
-
-					// Generate a random index within the bounds of the optionSetValues array
-					var randomIndex = Math.floor(Math.random() * optionSetValues.length);
-
-					// Return the randomly selected value
-					return optionSetValues[randomIndex];
-				}
-			}
-
-
-			async function getRandomLookup(attribute, target) {
-
-				const EntityLogicalName = target.Targets[0];
-				console.log("getRandomLookup for " + EntityLogicalName)
-
-				var randomIndex = getRandomNumber(1, 5);
-				var primaryIdAttribute = EntityLogicalName + "id";//await Xrm.Utility.getEntityMetadata(target.LogicalName, [target.LogicalName +""])""
-
-				console.log("getRandomLookup primaryIdAttribute =" + primaryIdAttribute)
-
-
-				//console.log("getRandomLookup primaryIdAttribute", primaryIdAttribute)
-
-				var primaryNameAttribute = (await Xrm.Utility.getEntityMetadata(EntityLogicalName)).PrimaryNameAttribute;
-				console.log("getRandomLookup primaryNameAttribute =" + primaryNameAttribute)
-
-				var record = (await Xrm.WebApi.online.retrieveMultipleRecords(EntityLogicalName, "?$select=" + primaryIdAttribute + "," + primaryNameAttribute, randomIndex)).entities[randomIndex - 1];
-				if (!record) {
-					return null;
-
-				}
-
-				var lookup_found = [{
-					id: record[primaryIdAttribute],
-					name: record[primaryNameAttribute],
-					entityType: EntityLogicalName,
-				}]
-				console.log("getRandomLookup lookup_found =", lookup_found)
-				console.log("getRandomLookup lookup_found attribute=", attribute)
-
-				attribute.setValue(lookup_found);
-
-				//console.log("getRandomLookup recfou", lookup_found)
-				//return [{
-				//	id: record[primaryIdAttribute],
-				//	name: record[primaryNameAttribute],
-				//	entityType: EntityLogicalName,
-				//}];
-			}
-
-			function getRandomDate(format) {
-				var start = new Date(1753, 1, 1);
-				var end = new Date(9999, 12, 31);
-				return new Date(getRandomNumber(start.getTime(), end.getTime()));
-			}
-			//#endregion fill all fields
-
-
-			$("#required_fields").click(function () {
-				if (CrmPowerPane.Utils.canNotExecute()) { return; }
-
-				try {
-
-
-					Xrm.Page.data.entity.attributes.forEach((a) => {
-						if (a.getRequiredLevel() === 'required' && !a.getValue()) {
-
-
-
-							switch (a.getAttributeType()) {
-
-
-								case 'memo':
-									a.setValue('memo');
-									break;
-								case 'string':
-									a.setValue(a.getName());
-
-									if (a.getName() === "emailaddress1") {
-										a.setValue("test@mail.local");
-									}
-
-									if (a.getName() === "telephone1") {
-										a.setValue("+32470000000");
-									}
-									break;
-								case 'boolean':
-									a.setValue(false);
-									break;
-								case 'datetime':
-									a.setValue(new Date());
-									break;
-								case 'decimal':
-								case 'double':
-								case 'integer':
-								case 'money':
-									a.setValue((a).getMin());
-									break;
-								case 'optionset':
-
-									a.setValue((a).getOptions()[0].value);
-									break;
-							}
-						}
-					});
-
-					CrmPowerPane.UI.ShowNotification("All required fields are filled");
-
-				} catch (e) {
-					CrmPowerPane.UI.ShowNotification("An error occured opening the Web API URL for this record.");
-				}
-			});
+            $("#clear_all_fields").click(function () {
+                if (CrmPowerPane.Utils.canNotExecute(true)) { return; }
+                const attributes = Xrm.Page.data.entity.attributes.get();
+                for (const attribute of attributes) {
+                    attribute.setValue(null);
+                }
+                CrmPowerPane.UI.ShowNotification("All fields are cleared", "info");
+            });
+
+            $("#fill_all_fields").click(function () {
+                if (CrmPowerPane.Utils.canNotExecute(true)) { return; }
+                try {
+                    const attributes = Xrm.Page.data.entity.attributes.get();
+                    const attributeMetadata = CrmPowerPane.ServiceOperations.GetAttributesMetaData(Xrm.Page.data.entity.getEntityName());
+
+                    for (const attribute of attributes) {
+
+                        const metadata = attributeMetadata.value.find(meta => meta.LogicalName === attribute.getName());
+
+                        if (!attribute.getValue() && metadata != undefined && metadata['AttributeType']) {
+
+                            const randomValue = getRandomValue(attribute, metadata);
+
+                            //console.log("RANDOM FOUND " + attribute._attributeName, randomValue)
+
+                            if (randomValue !== undefined) {
+                                attribute.setValue(randomValue);
+                            }
+                        }
+
+                    }
+                    CrmPowerPane.UI.ShowNotification("All fields are filled", "info");
+
+
+                } catch (e) {
+                }
+
+
+            });
+
+            function getRandomValue(attribute, metadata) {
+
+
+                switch (metadata['AttributeType']) {
+                    case "Lookup":
+                        getRandomLookup(attribute, metadata);
+                        return undefined;
+                    case "String":
+                    case "Memo":
+                        return getRandomString(metadata.MaxLength, metadata.Format);
+                    case "Decimal":
+                    case "Double":
+                    case "Money":
+                    case "Integer":
+                    case "BigInt":
+                        return getRandomNumber(metadata.MinValue, metadata.MaxValue, metadata.Precision);
+                    case "DateTime":
+                        return getRandomDate(metadata.Format);
+                    case "Boolean":
+                    case "Status":
+                    case "State":
+                    case "Picklist":
+                    case "MultiSelectPicklist":
+                        return getRandomPickList(attribute, metadata);
+
+
+                    case "Uniqueidentifier":
+                    case "Null":
+                        return null;
+                }
+            }
+
+
+
+
+            function getRandomNumber(minValue, maxValue, precision) {
+                if (precision === void 0) { precision = 0; }
+                var number = minValue + Math.random() * (maxValue - minValue);
+                return Number(number.toFixed(precision));
+            }
+
+            function getRandomString(maxLength, format) {
+                switch (format) {
+                    case "Email":
+
+                        return getRandomStringGenerator(Math.min((maxLength / 3), 15), false, true) + "@" +
+                            getRandomStringGenerator(Math.min((maxLength / 3), 10), false, true) + "." +
+                            getRandomStringGenerator(getRandomNumber(2, 3), false, true);
+                    case "Phone":
+                    case "Text":
+                    case "TextArea":
+                    case "TickerSymbol":
+                        return getRandomStringGenerator(Math.min((maxLength / 3), 50), true);
+                    case "URL":
+                        return "www." +
+                            getRandomStringGenerator(Math.min((maxLength / 3), 20)) + "." +
+                            getRandomStringGenerator(3);
+                }
+                return '';
+            }
+
+            function getRandomStringGenerator(maxLength, allowSpaces = false, forceLowerCase = false) {
+                const length = maxLength;
+
+                const characters = 'bcdfghjklmnpqrstvwxyz';
+                const vowels = "aeiou";
+                const charactersLength = characters.length;
+                const vowelsLength = vowels.length;
+
+                let result = '';
+                let counter = 0;
+                let nextCharIsVowel = false;
+                while (counter < length) {
+
+                    if (allowSpaces && Math.random() < 0.1 && counter < length - 3 && result.at(-1) !== ' ') {
+                        result += ' ';
+                    }
+                    else {
+                        nextCharIsVowel = characters.includes(result.at(-1) ?? ' ') || (result.at(-1) === ' ' && Math.random() < 0.4);
+                        if (nextCharIsVowel)
+                            result += vowels.charAt(Math.floor(Math.random() * vowelsLength));
+                        else
+                            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                    }
+                    counter += 1;
+                }
+                if (!forceLowerCase) {
+                    const arr = result.split(' ');
+                    for (var i = 0; i < arr.length; i++) {
+                        arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1).toLowerCase();
+                    }
+                    return arr.join(' ');
+                }
+                else {
+                    return result;
+                }
+            }
+
+
+            function getRandomPickList(attribute, metadata) {
+                var optionSetControl = Xrm.Page.getControl(attribute.getName());
+                if (optionSetControl && (optionSetControl.getControlType() === "optionset" || optionSetControl.getControlType() === "multiselectoptionset")) {
+                    var options = optionSetControl.getOptions();
+                    // Filter out null/empty placeholder options
+                    var validOptions = options.filter(function (o) {
+                        return o.value !== -1 && o.value !== null && o.text !== "";
+                    });
+                    if (validOptions.length === 0) return undefined;
+                    var randomIndex = Math.floor(Math.random() * validOptions.length);
+                    return validOptions[randomIndex].value;
+                }
+                return undefined;
+            }
+
+            async function getRandomLookup(attribute, target) {
+
+                const EntityLogicalName = target.Targets[0];
+                console.log("getRandomLookup for " + EntityLogicalName)
+
+                var randomIndex = getRandomNumber(1, 5);
+                var primaryIdAttribute = EntityLogicalName + "id";//await Xrm.Utility.getEntityMetadata(target.LogicalName, [target.LogicalName +""])""
+
+                console.log("getRandomLookup primaryIdAttribute =" + primaryIdAttribute)
+
+
+                //console.log("getRandomLookup primaryIdAttribute", primaryIdAttribute)
+
+                var primaryNameAttribute = (await Xrm.Utility.getEntityMetadata(EntityLogicalName)).PrimaryNameAttribute;
+                console.log("getRandomLookup primaryNameAttribute =" + primaryNameAttribute)
+
+                var record = (await Xrm.WebApi.online.retrieveMultipleRecords(EntityLogicalName, "?$select=" + primaryIdAttribute + "," + primaryNameAttribute, randomIndex)).entities[randomIndex - 1];
+                if (!record) {
+                    return null;
+
+                }
+
+                var lookup_found = [{
+                    id: record[primaryIdAttribute],
+                    name: record[primaryNameAttribute],
+                    entityType: EntityLogicalName,
+                }]
+                console.log("getRandomLookup lookup_found =", lookup_found)
+                console.log("getRandomLookup lookup_found attribute=", attribute)
+
+                attribute.setValue(lookup_found);
+
+                //console.log("getRandomLookup recfou", lookup_found)
+                //return [{
+                //	id: record[primaryIdAttribute],
+                //	name: record[primaryNameAttribute],
+                //	entityType: EntityLogicalName,
+                //}];
+            }
+
+            function getRandomDate(format) {
+                // Generate a reasonable date between 2000 and 2030
+                var start = new Date(2000, 0, 1);
+                var end = new Date(2030, 11, 31);
+                var timestamp = getRandomNumber(start.getTime(), end.getTime());
+                var date = new Date(timestamp);
+                if (format === "DateOnly") {
+                    date.setHours(0, 0, 0, 0);
+                }
+                return date;
+            }
+            //#endregion fill all fields
+
+
+            $("#required-fields").click(function () {
+                if (CrmPowerPane.Utils.canNotExecute(true)) { return; }
+                try {
+                    Xrm.Page.data.entity.attributes.forEach((a) => {
+                        if (a.getRequiredLevel() === 'required' && !a.getValue()) {
+
+
+
+                            switch (a.getAttributeType()) {
+
+
+                                case 'memo':
+                                    a.setValue('memo');
+                                    break;
+                                case 'string':
+                                    a.setValue(a.getName());
+
+                                    if (a.getName() === "emailaddress1") {
+                                        a.setValue("test@mail.local");
+                                    }
+
+                                    if (a.getName() === "telephone1") {
+                                        a.setValue("+32470000000");
+                                    }
+                                    break;
+                                case 'boolean':
+                                    a.setValue(false);
+                                    break;
+                                case 'datetime':
+                                    a.setValue(new Date());
+                                    break;
+                                case 'decimal':
+                                case 'double':
+                                case 'integer':
+                                case 'money':
+                                    a.setValue((a).getMin());
+                                    break;
+                                case 'optionset':
+
+                                    a.setValue((a).getOptions()[0].value);
+                                    break;
+                            }
+                        }
+                    });
+
+                    CrmPowerPane.UI.ShowNotification("All required fields are filled");
+
+                } catch (e) {
+                    CrmPowerPane.UI.ShowNotification("An error occured opening the Web API URL for this record.");
+                }
+            });
 
 
             $("#show-field-value").click(function () {
@@ -1465,10 +1449,16 @@ $(function () {
             });
 
             $("#crm-power-pane").on("click", '.crm-power-pane-copy', function () {
-                $(".crm-power-pane-copy").removeClass("crm-power-pane-copied").html("Copy it!")
-                $input = $(this).parent().find("input").select();
-                document.execCommand("copy");
-                $(this).addClass("crm-power-pane-copied").html("Copied to clipboard!");
+                var $this = $(this);
+                $(".crm-power-pane-copy").removeClass("crm-power-pane-copied").html("Copy it!");
+                var text = $this.parent().find("input").val();
+                _copyToClipboard(text).then(function (ok) {
+                    if (ok) {
+                        $this.addClass("crm-power-pane-copied").html("Copied to clipboard!");
+                    } else {
+                        $this.html("Copy failed");
+                    }
+                });
             });
 
             $("#crm-power-pane-popup-cancel").click(function () {
@@ -1493,7 +1483,7 @@ $(function () {
                 var activeClass = "dynamics-crm-power-pane-active-tab";
                 $("#crm-power-pane-fetchxml-popup-container ul li").removeClass(activeClass);
                 $(this).addClass(activeClass);
-                $tabs = $(".crm-power-pane-fetchxml-tab");
+                var $tabs = $(".crm-power-pane-fetchxml-tab");
                 $tabs.hide();
                 $tabs.eq($(this).index()).show();
             });
@@ -1591,28 +1581,79 @@ $(function () {
                 }
             });
 
+            // --- Fix: use the defined helper instead of undefined function ---
             $("#open-new-editor").click(function () {
-                //if (CrmPowerPane.Utils.canNotExecute(true)) { return; }
-
                 try {
-                    const temp = RetrieveWithCustomFilterXXX("RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')");
-                    const environmentId = temp["Detail"]["EnvironmentId"];
+                    var temp = CrmPowerPane.ServiceOperations.RetrieveWithCustomFilter(
+                        "RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default'"
+                    );
+                    var environmentId = temp["Detail"]["EnvironmentId"];
 
                     window.open(
-                        `https://make.powerapps.com/e/${environmentId}/s/00000001-0000-0000-0001-00000000009b/entity/${Xrm.Page.data.entity.getEntityName().toLowerCase()}/form/edit/${Xrm.Page.ui.formSelector.getCurrentItem().getId()}?source=powerappsportal`,
+                        "https://make.powerapps.com/e/" + environmentId +
+                        "/s/00000001-0000-0000-0001-00000000009b/entity/" +
+                        Xrm.Page.data.entity.getEntityName().toLowerCase() +
+                        "/form/edit/" +
+                        Xrm.Page.ui.formSelector.getCurrentItem().getId() +
+                        "?source=powerappsportal",
                         '_blank'
                     );
-
                 } catch (e) {
-                    CrmPowerPane.UI.ShowNotification("An error ocurred while redirecting to form editor.", "error");
+                    CrmPowerPane.UI.ShowNotification("An error occurred while redirecting to form editor.", "error");
                 }
             });
 
+            // --- Modernize clipboard copy in the copy-it button ---
+            $("#crm-power-pane").on("click", '.crm-power-pane-copy', function () {
+                var $this = $(this);
+                $(".crm-power-pane-copy").removeClass("crm-power-pane-copied").html("Copy it!");
+                var text = $this.parent().find("input").val();
+                _copyToClipboard(text).then(function (ok) {
+                    if (ok) {
+                        $this.addClass("crm-power-pane-copied").html("Copied to clipboard!");
+                    } else {
+                        $this.html("Copy failed");
+                    }
+                });
+            });
 
+            // --- Modernize schema-names-as-desc copy ---
+            $("#schema-names-as-desc").click(function () {
+                try {
+                    var responsibleControls = ["standard", "optionset", "lookup"];
+                    Xrm.Page.ui.controls.forEach(function (control) {
+                        if (responsibleControls.indexOf(control.getControlType()) > -1) {
+                            var attributeLogicalName = control.getName();
+                            var $label = _getLabelElement(attributeLogicalName);
+                            if ($label) {
+                                $label.attr("title", attributeLogicalName);
+                                $label.off("click").click(function () {
+                                    _copyToClipboard(attributeLogicalName).then(function (ok) {
+                                        if (ok) {
+                                            CrmPowerPane.UI.ShowNotification(
+                                                "Copied <b>\"" + attributeLogicalName + "\"</b> to clipboard.",
+                                                "success"
+                                            );
+                                        } else {
+                                            CrmPowerPane.UI.ShowNotification("Copying failed. Please copy it yourself.", "error");
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    });
+                    CrmPowerPane.UI.ShowNotification("Schema name mode is activated for descriptions. You can copy it with label click.");
+                } catch (e) {
+                    CrmPowerPane.Errors.WrongPageWarning();
+                }
+            });
+
+            // --- Fix: use the defined helper instead of undefined function ---
             $("#open-webapi").click(function () {
                 try {
                     var apiVersion = Xrm.Utility.getGlobalContext().getVersion();
-                    var shortVersion = apiVersion.substring(3, apiVersion.indexOf(".") - 1);
+                    var parts = apiVersion.split(".");
+                    var shortVersion = parts.length >= 2 ? (parts[0] + "." + parts[1]) : apiVersion;
 
                     Xrm.Utility.getEntityMetadata(Xrm.Page.data.entity.getEntityName(), "")
                         .then(function (result) {
@@ -1626,25 +1667,6 @@ $(function () {
                 }
             });
 
-
-            $("#advanced_find").click(function () {
-
-                let clientUrlForParams = Xrm.Page.context.getClientUrl();
-                clientUrlForParams += (Xrm.Page.context.getClientUrl().indexOf('appid') > -1 ? '&' : '/main.aspx?');
-
-                if (!Xrm.Page.data || !Xrm.Page.data.entity) {
-                    window.open(`${clientUrlForParams}pagetype=advancedfind`, '_blank');
-                } else {
-                    let entityName = Xrm.Page.data.entity.getEntityName();
-                    window.open(
-                        `${clientUrlForParams}extraqs=EntityCode%3d${Xrm.Internal.getEntityCode(
-                            entityName
-                        )}&pagetype=advancedfind`,
-                        '_blank'
-                    );
-                }
-
-            });
 
         }
 

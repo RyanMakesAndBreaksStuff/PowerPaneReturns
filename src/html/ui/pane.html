@@ -3,7 +3,7 @@
         <div class="crm-power-pane-scrolling-container">
             <ul class="crm-power-pane-section" id="user-actions">
                     <li class="crm-power-pane-header">General</li>
-                    <li class="crm-power-pane-subgroup" id="user-info"><span><span class="icon user-info-icon"></span>User Info</span>
+                    <li class="crm-power-pane-subgroup" id="user-info"><span><span class="icon user-info-icon"></span>User Info</span></li>
                     <li class="crm-power-pane-subgroup" id="fetch-xml"><span><span class="icon fetch-xml-icon"></span>Execute Fetch Xml</span></li>
                     <li class="crm-power-pane-subgroup" id="advanced_find"><span><span class="icon advanced-find-icon"></span>Open Advanced Find</span></li>
                     
@@ -13,7 +13,7 @@
                 <li class="crm-power-pane-subgroup" id="entity-name"><span><span class="icon entity-name-icon"></span>Entity Info</span></li>
                 <li class="crm-power-pane-subgroup" id="record-id"><span><span class="icon record-id-icon"></span>Record Id</span></li>
                 <li class="crm-power-pane-subgroup" id="record-url"><span><span class="icon record-url-icon"></span>Record Url</span></li>
-                <li class="crm-power-pane-subgroup" id="clone-record"><span><span class="icon clone-record"></span>Clone Record</span></li>
+                <li class="crm-power-pane-subgroup" id="clone-record"><span><span class="icon clone-record-icon"></span>Clone Record</span></li>
                 <li class="crm-power-pane-subgroup" id="record-properties"><span><span class="icon record-properties-icon"></span>Record Properties</span></li>
             </ul>
             <ul class="crm-power-pane-section mr-10" id="form-actions">
@@ -28,9 +28,9 @@
             </ul>
             <ul class="crm-power-pane-section">
                 <li class="crm-power-pane-header"> </li>
-                 <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon clear-all-icon"></span>Clear All FIelds</span></li>
-                  <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon fill-all-icon"></span>Fill All Fields</span></li>
-                   <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon required-fields-icon"></span>Fill Only Required Fields</span></li>
+                 <li class="crm-power-pane-subgroup" id="clear-all-fields"><span><span class="icon clear-all-fields-icon"></span>Clear All Fields</span></li>
+                  <li class="crm-power-pane-subgroup" id="fill-all-fields"><span><span class="icon fill-all-fields-icon"></span>Fill All Fields</span></li>
+                   <li class="crm-power-pane-subgroup" id="required-fields"><span><span class="icon required-fields-icon"></span>Fill Only Required Fields</span></li>
                 <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon show-field-value-icon"></span>Show Field Value</span></li>
                 <li class="crm-power-pane-subgroup" id="find-field-in-form"><span><span class="icon find-field-in-form-icon"></span>Find Field In Form</span></li>
                 <li class="crm-power-pane-subgroup" id="show-dirty-fields"><span><span class="icon show-dirty-fields-icon"></span>Highlight Dirty Fields</span></li>
@@ -40,10 +40,10 @@
                 <li class="crm-power-pane-subgroup" id="refresh-form"><span><span class="icon refresh-form-icon"></span>Refresh Form</span></li>
                 <li class="crm-power-pane-subgroup" id="toggle-lookup-links"><span><span class="icon toggle-lookup-links-icon"></span>Toggle Lookup Links</span></li>
             </ul>
-            <ul class="crm-power-pane-section" id="form-actions">
+            <ul class="crm-power-pane-section" id="navigation-actions">
                 <li class="crm-power-pane-header">Navigate To</li>
                 <li class="crm-power-pane-subgroup" id="go-to-record"><span><span class="icon go-to-record-icon"></span>Go to Record by Id</span></li>
-                <li class="crm-power-pane-subgroup" id="go-to-create-form"><span><span class="icon go-to-create-form"></span>Go to Create Form</span></li>
+                <li class="crm-power-pane-subgroup" id="go-to-create-form"><span><span class="icon go-to-create-form-icon"></span>Go to Create Form</span></li>
                 <li class="crm-power-pane-subgroup" id="open-legacy-editor"><span><span class="icon form-editor-icon"></span>Legacy Form Editor</span></li>
                  <li class="crm-power-pane-subgroup" id="open-new-editor"><span><span class="icon form-editor-icon"></span>Maker Portal Form Editor</span></li>
                 <li class="crm-power-pane-subgroup" id="open-entity-editor"><span><span class="icon entity-editor-icon"></span>Entity Editor</span></li>
@@ -74,7 +74,7 @@
       <ul>
       </ul>
     <div class="clear-both"></div>
-      <div id="crm-power-pane-button-container">
+      <div id="crm-power-pane-popup-button-container">
          <button class="crm-power-pane-button" id="crm-power-pane-popup-ok">OK</button>
          <button class="crm-power-pane-button" id="crm-power-pane-popup-cancel">Cancel</button>
       </div>
@@ -99,7 +99,7 @@
                     <textarea id="crm-power-pane-fetchxml-result-area" class="crm-power-pane-texarea"></textarea>
                 </div>
             </div>
-            <div id="crm-power-pane-button-container">
+            <div id="crm-power-pane-fetchxml-button-container">
                 <button class="crm-power-pane-button" id="crm-power-pane-popup-ok-fetch">OK</button>
                 <button class="crm-power-pane-button" id="crm-power-pane-popup-cancel-fetch">Close</button>
             </div>
@@ -122,7 +122,7 @@
                 <tr>
                     <th>Display Name</th>
                     <th>Unique Name</th>
-                    <th>Verison</th>
+                    <th>Version</th>
                     <th>Management Type</th>
                     <th>Installed On</th>
                     <th>Export</th>
@@ -132,16 +132,16 @@
                 <tr>
                     <td>Display Name</td>
                     <td>Unique Name</td>
-                    <td>Verison</td>
+                    <td>Version</td>
                     <td>Management Type</td>
                     <td>Installed On</td>
                     <td>Export</td>
                 </tr>
             </tbody>
         </table>
-        <div id="crm-power-pane-button-container">
-            <button class="crm-power-pane-button" id="crm-power-pane-popup-ok-fetch">OK</button>
-            <button class="crm-power-pane-button" id="crm-power-pane-popup-cancel-fetch">Close</button>
+        <div id="crm-power-pane-solutions-button-container">
+            <button class="crm-power-pane-button" id="crm-power-pane-popup-ok-solutions">OK</button>
+            <button class="crm-power-pane-button" id="crm-power-pane-popup-cancel-solutions">Close</button>
         </div>
 
     </div>

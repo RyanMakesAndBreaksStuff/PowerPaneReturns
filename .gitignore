@@ -11,3 +11,6 @@ dist/
 
 #Visual Studio Settigns
 .vs/
+
+#svgs
+src/assets/img/action-icons/*.svg
