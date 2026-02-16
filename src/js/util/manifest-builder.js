@@ -1,11 +1,14 @@
 const build = (target, version) => {
     const manifest = {};
     // Common properties
-    manifest.manifest_version = 3; // Required for MV3
-    manifest.name = "Powe Pane Returns";
-    manifest.short_name = "Powe Pane Returns";
+    manifest.manifest_version = 3;
+    manifest.name = "Power Pane Returns";
+    manifest.short_name = "Power Pane Returns";
     manifest.version = version;
-    manifest.description = "Powe Pane Returns is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.";
+    manifest.description = "Power Pane Returns is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.";
+    manifest.content_security_policy = {
+        extension_pages: "script-src 'self'; object-src 'self'"
+    };
     manifest.icons = {
         16: "img/icon-16.png",
         32: "img/icon-32.png",
@@ -45,13 +48,13 @@ const build = (target, version) => {
 
     // Background Service Worker
     manifest.background = {
-        service_worker: "js/background.js", // Using service worker for background
-        type: "module" // Recommended for modern JavaScript
+        service_worker: "js/background.js",
+        type: "module"
     };
 
     // Browser Action (renamed to `action` in MV3)
     manifest.action = {
-        default_title: "Powe Pane Returns",
+        default_title: "Power Pane Returns",
         default_icon: {
             "16": "img/icon-16.png",
             "32": "img/icon-32.png",
@@ -60,7 +63,6 @@ const build = (target, version) => {
             "128": "img/icon-128.png"
         }
     };
-
 
     manifest.content_scripts = [
         {
@@ -71,17 +73,14 @@ const build = (target, version) => {
         }
     ];
 
-    // Permissions
+    // Permissions — storage removed to simplify Chrome Web Store approval
     manifest.permissions = [
         "activeTab",
-        "storage",
         "scripting"
     ];
 
-
-
     // Host Permissions (required for HTTP/HTTPS URLs)
-    manifest.host_permissions = [ "http://*/*", "https://*/*" ]
+    manifest.host_permissions = matchPatterns;
 
     // Web Accessible Resources
     manifest.web_accessible_resources = [
@@ -91,26 +90,13 @@ const build = (target, version) => {
         }
     ];
 
-
-
-    // Options Page
-    if (target === "chrome" || target === "edge-chromium" || target === "edge") {
-        manifest.options_page = "ui/options.html";
-    } else if (target === "firefox") {
-        manifest.options_ui = {
-            page: "ui/options.html",
-            browser_style: true
-        };
-    }
-
-    // Edge-specific properties
-    if (target === "edge") {
+    // Edge-chromium-specific properties
+    if (target === "edge-chromium") {
         manifest.author = "Ryan Rettinger, Oguzhan Can, Onur Menal";
     }
 
     // Browser-specific adjustments
     if (target === "firefox") {
-        // Firefox-specific adjustments for compatibility
         manifest.permissions.push("webRequest");
         manifest.browser_specific_settings = {
             gecko: {
