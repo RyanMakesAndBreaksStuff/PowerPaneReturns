@@ -1,10 +1,8 @@
-## Huge thank you to both Onur Menal the original developer and Oğuzhan Can whose forked I used as my base.
+## Huge thank you to both Onur Menal the original developer and Oğuzhan Can whose fork I used as my base. Updated Node packages, all new theme for the UI, bunch of new features. 
 
 ## This extension was originally created by Onur Menal. I updated the Node.js packages to their latest versions to ensure compatibility with modern environments.
 
   
-  
-
 # CRM Power Pane
 
 [![Build Status](https://dev.azure.com/powerpane/Dynamics%20365%20Power%20Pane/_apis/build/status/crm-power-pane-ci)](https://dev.azure.com/powerpane/Dynamics%20365%20Power%20Pane/_build/latest?definitionId=1)
@@ -36,21 +34,7 @@ Click the CRM Power Pane icon next to the Microsoft Dynamics 365 logo, and selec
 
   
 
-### Google Chrome
-
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eadknamngiibbmjdfokmppfooolhdidc.svg)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc)
-
-[![Chrome Web Store - Users](https://img.shields.io/chrome-web-store/users/eadknamngiibbmjdfokmppfooolhdidc.svg)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc)
-
-[![Chrome Web Store - Rating](https://img.shields.io/chrome-web-store/rating/eadknamngiibbmjdfokmppfooolhdidc.svg)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc/reviews)
-
-[![Chrome Web Store - Reviews](https://img.shields.io/chrome-web-store/rating-count/eadknamngiibbmjdfokmppfooolhdidc.svg)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc/reviews)
-
-  
-
-[![Dynamics CRM Power Pane on Chrome Web Store](./docs/assets/chrome-web-store-badge.png)](https://chrome.google.com/webstore/detail/dynamics-crm-power-pane/eadknamngiibbmjdfokmppfooolhdidc)
-
-  
+### Coming soon - links to chrome webstore listing  
 
 ## Build and Run
 

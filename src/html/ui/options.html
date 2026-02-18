@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-      <meta charset="utf-8">
-      <title>Power Pane Returns Options</title>
-      <link rel="stylesheet" type="text/css" href="./css/options.css">
-  </head>
-  <body>
-    <h2>Visibility settings</h2>
-    <hr/>
-    <form id='options'></form>
-    <hr/>
-    <div id="status"></div>
-    <button id="select-all">Select All</button>
-    <button id="deselect-all">Deselect All</button>
-    <button id="save">Save</button>
-    <script src="./js/options.js"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Power Pane Returns - Options</title>
+  <link rel="stylesheet" href="./css/options.css" />
+</head>
+<body>
+  <h2>Power Pane Returns - Visibility settings</h2>
+  <p>
+    Select which actions should appear in the Power Pane.
+    Changes apply the next time a Dynamics page loads (reload existing tabs to apply).
+  </p>
+  <hr />
+
+  <form id="options"></form>
+
+  <hr />
+  <div class="options-actions">
+    <button type="button" id="select-all">Select all</button>
+    <button type="button" id="deselect-all">Deselect all</button>
+    <button type="button" id="save">Save</button>
+  </div>
+
+  <div id="status" aria-live="polite"></div>
+
+  <script src="./js/options.js"></script>
 </body>
 </html>
