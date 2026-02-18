@@ -2,10 +2,10 @@ const build = (target, version) => {
     const manifest = {};
     // Common properties
     manifest.manifest_version = 3; // Required for MV3
-    manifest.name = "Powe Pane Returns";
-    manifest.short_name = "Powe Pane Returns";
+    manifest.name = "Power Pane Returns";
+    manifest.short_name = "Power Pane Returns";
     manifest.version = version;
-    manifest.description = "Powe Pane Returns is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.";
+    manifest.description = "Power Pane Returns is a helper tool designed to integrate with Dynamics CRM/365 application and allow you to manipulate forms.";
     manifest.icons = {
         16: "img/icon-16.png",
         32: "img/icon-32.png",
@@ -50,7 +50,7 @@ const build = (target, version) => {
 
     // Browser Action (renamed to `action` in MV3)
     manifest.action = {
-        default_title: "Powe Pane Returns",
+        default_title: "Power Pane Returns",
         default_icon: {
             "16": "img/icon-16.png",
             "32": "img/icon-32.png",

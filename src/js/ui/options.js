@@ -1,97 +1,59 @@
-const STORAGE_KEY = 'powerPaneOptions';
-const ext = typeof browser !== "undefined" ? browser : chrome;
+(function () {
+  "use strict";
 
-function getOptionsMap() {
+  const STORAGE_KEY = "powerPaneOptions";
+  const ext = typeof browser !== "undefined" ? browser : chrome;
+
+  function optionsForm() {
+    return document.getElementById("options");
+  }
+
+  function getAllCheckboxes() {
+    return Array.from(optionsForm()?.querySelectorAll("input[type='checkbox']") || []);
+  }
+
+  function showStatus(message, isError) {
+    const status = document.getElementById("status");
+    if (!status) return;
+
+    status.textContent = message;
+    status.style.color = isError ? "#c62828" : "";
+    window.setTimeout(() => {
+      status.textContent = "";
+      status.style.color = "";
+    }, 1200);
+  }
+
+  async function getStoredOptions() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? new Map(JSON.parse(raw)) : new Map();
-    } catch {
-        return new Map();
-    }
-}
-
-function saveOptionsMap(map) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...map]));
-}
-
-function saveOptions() {
-    const map = new Map();
-    const elements = document.forms[0].elements;
-    for (let i = 0; i < elements.length; i++) {
-        map.set(elements[i].id, elements[i].checked);
-    }
-    saveOptionsMap(map);
-    const status = document.getElementById('status');
-    status.textContent = 'Options saved.';
-    setTimeout(() => { status.textContent = ''; }, 750);
-}
-
-function loadOptions() {
-    const map = getOptionsMap();
-    map.forEach((value, key) => {
-        const checkbox = document.getElementById(key);
-        if (checkbox) checkbox.checked = value;
-    });
-}
-
-function generateOptionsPage() {
-    const paneUrl = ext.runtime.getURL("ui/pane.html");
-    fetch(paneUrl)
-        .then(response => {
-            if (!response.ok) throw new Error("Failed to load pane.html");
-            return response.text();
-        })
-        .then(html => {
-            const parser = new DOMParser();
-            const paneDocument = parser.parseFromString(html, "text/html");
-            const paneSections = paneDocument.getElementsByClassName("crm-power-pane-section");
-            const options = document.getElementById("options");
-            for (let i = 0; i < paneSections.length; i++) {
-                const optionsGroup = document.createElement('div');
-                const groupHeader = document.createElement("h3");
-                groupHeader.innerHTML = paneSections[i].getElementsByClassName("crm-power-pane-header")[0].innerHTML;
-                optionsGroup.appendChild(groupHeader);
-                const paneItems = paneSections[i].getElementsByClassName("crm-power-pane-subgroup");
-                for (let j = 0; j < paneItems.length; j++) {
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = true;
-                    checkbox.id = paneItems[j].id;
-                    const optionsItem = document.createElement("label");
-                    optionsItem.htmlFor = paneItems[j].id;
-                    optionsItem.appendChild(checkbox);
-                    optionsItem.appendChild(document.createTextNode(paneItems[j].children[0].innerText));
-                    optionsGroup.appendChild(optionsItem);
-                }
-                options.appendChild(optionsGroup);
-            }
-            // Load saved state after generating checkboxes
-            loadOptions();
-        })
-        .catch(err => console.error("Options generation error:", err));
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    generateOptionsPage();
-});
-document.getElementById('save').addEventListener('click', saveOptions);
-document.getElementById('select-all').addEventListener('click', function () {
-    const checkboxes = document.forms[0].elements;
-    for (let i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = true;
-    }
-});
-document.getElementById('deselect-all').addEventListener('click', function () {
-    const checkboxes = document.forms[0].elements;
-    for (let i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = false;
+      const result = await ext.storage.local.get(STORAGE_KEY);
+      const value = result && result[STORAGE_KEY];
+      return value && typeof value === "object" ? value : {};
+    } catch (e) {
+      console.error("Failed to load options:", e);
+      return {};
     }
   }
 
+  async function setStoredOptions(optionsObj) {
+    try {
+      await ext.storage.local.set({ [STORAGE_KEY]: optionsObj });
+      return true;
+    } catch (e) {
+      console.error("Failed to save options:", e);
+      return false;
+    }
+  }
+
+  function setAllCheckboxes(checked) {
+    getAllCheckboxes().forEach((cb) => {
+      cb.checked = !!checked;
+    });
+  }
+
   async function saveOptions() {
-    const checkboxes = getAllCheckboxes();
     const optionsObj = {};
-    for (const cb of checkboxes) {
+    for (const cb of getAllCheckboxes()) {
       if (!cb.id) continue;
       optionsObj[cb.id] = !!cb.checked;
     }
@@ -103,12 +65,11 @@ document.getElementById('deselect-all').addEventListener('click', function () {
   async function restoreOptions() {
     const stored = await getStoredOptions();
     for (const cb of getAllCheckboxes()) {
-      // Default: enabled
-      cb.checked = (stored[cb.id] !== false);
+      cb.checked = stored[cb.id] !== false;
     }
   }
 
-  function buildOptionCheckbox(actionId, actionLabel, checkedByDefault = true) {
+  function buildOptionCheckbox(actionId, actionLabel, checkedByDefault) {
     const wrapper = document.createElement("div");
     wrapper.className = "crm-power-pane-option";
 
@@ -132,32 +93,31 @@ document.getElementById('deselect-all').addEventListener('click', function () {
 
     container.innerHTML = "";
 
-    // Build a nice list from pane.html so you only maintain IDs/labels in one place
-    const url = ext.runtime.getURL("ui/pane.html");
-    const response = await fetch(url);
+    const paneUrl = ext.runtime.getURL("ui/pane.html");
+    const response = await fetch(paneUrl);
+    if (!response.ok) throw new Error(`Failed to fetch pane.html: ${response.status}`);
+
     const htmlText = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, "text/html");
-
-    const paneSections = doc.querySelectorAll(".crm-power-pane-section");
+    const paneDocument = parser.parseFromString(htmlText, "text/html");
+    const paneSections = paneDocument.querySelectorAll(".crm-power-pane-section");
 
     for (const section of paneSections) {
-      const header = section.querySelector(".crm-power-pane-header");
-      const title = header ? header.textContent.trim() : "";
-
       const paneItems = section.querySelectorAll(".crm-power-pane-subgroup");
       if (!paneItems.length) continue;
 
       const optionsGroup = document.createElement("div");
       optionsGroup.className = "options-group";
 
+      const header = section.querySelector(".crm-power-pane-header");
       const groupHeader = document.createElement("h3");
-      groupHeader.textContent = title || "Other";
+      groupHeader.textContent = (header?.textContent || "Other").trim() || "Other";
       optionsGroup.appendChild(groupHeader);
 
       for (const item of paneItems) {
         const actionId = item.getAttribute("id");
         if (!actionId) continue;
+
         const actionLabel = (item.textContent || actionId).trim();
         optionsGroup.appendChild(buildOptionCheckbox(actionId, actionLabel, true));
       }
@@ -165,15 +125,14 @@ document.getElementById('deselect-all').addEventListener('click', function () {
       container.appendChild(optionsGroup);
     }
 
-    // Apply saved values after building
     await restoreOptions();
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
+  document.addEventListener("DOMContentLoaded", async function () {
     try {
       await generateOptionsPage();
     } catch (e) {
-      console.error("Failed to render options:", e);
+      console.error("Options generation error:", e);
       showStatus("Failed to render options page. See console.", true);
     }
 
