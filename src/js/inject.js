@@ -3,12 +3,15 @@
 
   const ext = typeof browser === "undefined" ? chrome : browser;
   const STORAGE_KEY = "powerPaneOptions";
+  const PANE_ROOT_ID = "crm-power-pane";
+  const PANE_SCRIPT_PATH = "ui/js/pane.js";
+  const PANE_TEMPLATE_PATH = "ui/pane.html";
+  const INITIALIZE_TIMEOUT_MS = 30000;
+  const OBSERVER_FALLBACK_INTERVAL_MS = 1500;
 
   const Interval = {
     PowerPaneControl: {
       Pointer: undefined,
-      Count: 0,
-      MaxTryCount: 10,
     },
   };
 
@@ -31,7 +34,15 @@
     return null;
   }
 
+  function isTrustedExtensionUrl(url) {
+    return typeof url === "string" && url.startsWith(ext.runtime.getURL(""));
+  }
+
   function buildScriptTag(source) {
+    if (!isTrustedExtensionUrl(source) || !source.endsWith(`/${PANE_SCRIPT_PATH}`)) {
+      throw new Error("Refusing to inject unexpected script source.");
+    }
+
     const script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.setAttribute("src", source);
@@ -146,63 +157,105 @@
     });
   }
 
-  function injectSource(sources) {
+  function injectSource(paneContainer, paneScript) {
     const topDoc = getTopDocument();
-    const alreadyInjected = Array.from(topDoc.scripts).some((s) => (s.src || "").includes("ui/js/pane.js"));
-    if (alreadyInjected || topDoc.getElementById("crm-power-pane")) return;
+    const alreadyInjected = Array.from(topDoc.scripts).some((s) => (s.src || "").endsWith(`/${PANE_SCRIPT_PATH}`));
+    if (alreadyInjected || topDoc.getElementById(PANE_ROOT_ID)) return;
 
     const body = topDoc.querySelector("body[scroll=no]") || topDoc.querySelector("body");
     if (!body) return;
 
-    sources.forEach((node) => body.appendChild(node));
+    if (!paneContainer || !paneContainer.querySelector || !paneContainer.querySelector(`#${PANE_ROOT_ID}`)) {
+      throw new Error("Pane template is missing expected root element.");
+    }
+
+    if (!paneScript || paneScript.tagName !== "SCRIPT" || !isTrustedExtensionUrl(paneScript.src)) {
+      throw new Error("Unexpected pane script element.");
+    }
+
+    body.appendChild(paneContainer);
+    body.appendChild(paneScript);
   }
 
   async function injectPane() {
-    const templateUrl = ext.runtime.getURL("ui/pane.html");
+    const templateUrl = ext.runtime.getURL(PANE_TEMPLATE_PATH);
+    if (!isTrustedExtensionUrl(templateUrl)) {
+      throw new Error("Unexpected pane template URL.");
+    }
+
     const res = await fetch(templateUrl);
     if (!res.ok) throw new Error(`Failed to fetch pane template: ${res.status}`);
 
     const html = await res.text();
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    const paneRoot = parsed.getElementById(PANE_ROOT_ID);
+    if (!paneRoot) {
+      throw new Error("Pane template validation failed.");
+    }
+
     const content = document.createElement("div");
-    content.innerHTML = html;
     content.className = "crm-power-pane-container";
+    content.appendChild(paneRoot.cloneNode(true));
 
     const optionsObj = await getStoredOptions();
     applyVisibilityOptions(content, optionsObj);
 
-    const script = buildScriptTag(ext.runtime.getURL("ui/js/pane.js"));
-    injectSource([content, script]);
+    const script = buildScriptTag(ext.runtime.getURL(PANE_SCRIPT_PATH));
+    injectSource(content, script);
+  }
+
+  async function ensurePaneInjected() {
+    const topDoc = getTopDocument();
+    const hasButton = !!topDoc.getElementById("crm-power-pane-button");
+    const hasPane = !!topDoc.getElementById(PANE_ROOT_ID);
+
+    if (!hasButton) {
+      const buttonInjected = injectPowerPaneButton();
+      if (!buttonInjected) return false;
+    }
+
+    if (!hasPane) {
+      await injectPane();
+    }
+
+    return !!topDoc.getElementById("crm-power-pane-button") && !!topDoc.getElementById(PANE_ROOT_ID);
   }
 
   function initialize() {
-    Interval.PowerPaneControl.Pointer = window.setInterval(async function () {
-      Interval.PowerPaneControl.Count++;
-      if (Interval.PowerPaneControl.Count > Interval.PowerPaneControl.MaxTryCount) {
+    const startTime = Date.now();
+    let settled = false;
+    let observer = null;
+
+    const stop = () => {
+      settled = true;
+      if (observer) observer.disconnect();
+      if (Interval.PowerPaneControl.Pointer) {
         clearInterval(Interval.PowerPaneControl.Pointer);
+      }
+    };
+
+    const tryInject = async () => {
+      if (settled) return;
+      if (Date.now() - startTime > INITIALIZE_TIMEOUT_MS) {
+        stop();
         return;
       }
 
-      const topDoc = getTopDocument();
-      const powerPaneButton = topDoc.getElementById("crm-power-pane-button");
-      const powerPaneRoot = topDoc.getElementById("crm-power-pane");
-
-      if (!powerPaneButton) {
-        const ok = injectPowerPaneButton();
-        if (!ok) return;
+      try {
+        const done = await ensurePaneInjected();
+        if (done) stop();
+      } catch (e) {
+        console.error("Failed to inject Power Pane:", e);
       }
+    };
 
-      if (!powerPaneRoot) {
-        try {
-          await injectPane();
-        } catch (e) {
-          console.error("Failed to inject Power Pane:", e);
-        }
-      }
+    observer = new MutationObserver(() => {
+      void tryInject();
+    });
 
-      if (topDoc.getElementById("crm-power-pane-button") && topDoc.getElementById("crm-power-pane")) {
-        clearInterval(Interval.PowerPaneControl.Pointer);
-      }
-    }, 1000);
+    observer.observe(getTopDocument(), { childList: true, subtree: true });
+    Interval.PowerPaneControl.Pointer = window.setInterval(() => void tryInject(), OBSERVER_FALLBACK_INTERVAL_MS);
+    void tryInject();
   }
 
   initialize();

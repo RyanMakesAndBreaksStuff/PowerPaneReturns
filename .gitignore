@@ -16,3 +16,5 @@ dist/
 src/assets/img/action-icons/*.svg
 .github/skills/*
 .gitignore
+.agents/*
+.claude/*

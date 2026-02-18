@@ -4,6 +4,9 @@
   "use strict";
 
   const ext = typeof browser !== "undefined" ? browser : chrome;
+  const PANE_SELECTOR = ".crm-power-pane-sections";
+  const MAX_PANE_READY_ATTEMPTS = 10;
+  const PANE_READY_RETRY_MS = 200;
 
   function togglePaneVisibilityInTab(tabId) {
     return ext.scripting.executeScript({
@@ -23,6 +26,27 @@
     });
   }
 
+  async function isPanePresentInTab(tabId) {
+    const [{ result }] = await ext.scripting.executeScript({
+      target: { tabId },
+      func: (selector) => !!document.querySelector(selector),
+      args: [PANE_SELECTOR],
+    });
+
+    return !!result;
+  }
+
+  async function waitForPaneInTab(tabId) {
+    for (let attempt = 0; attempt < MAX_PANE_READY_ATTEMPTS; attempt++) {
+      if (await isPanePresentInTab(tabId)) {
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, PANE_READY_RETRY_MS));
+    }
+
+    return false;
+  }
+
   ext.action.onClicked.addListener(async (tab) => {
     try {
       if (!tab?.id) return;
@@ -36,8 +60,12 @@
         files: ["js/inject.js"],
       });
 
-      // Give the content script time to create the pane, then toggle.
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const paneReady = await waitForPaneInTab(tab.id);
+      if (!paneReady) {
+        console.warn("Power Pane was not ready after retries.");
+        return;
+      }
+
       await togglePaneVisibilityInTab(tab.id);
     } catch (e) {
       console.error("Failed to toggle Power Pane:", e);

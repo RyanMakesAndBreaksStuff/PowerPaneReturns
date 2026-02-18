@@ -42,6 +42,8 @@ const build = (target, version) => {
     "https://*.crm.dynamics.com/*",
   ];
 
+  const hostPermissions = [...matchPatterns];
+
     // Background Service Worker
     manifest.background = {
         service_worker: "js/background.js", // Using service worker for background
@@ -79,8 +81,8 @@ const build = (target, version) => {
 
 
 
-    // Host Permissions (required for HTTP/HTTPS URLs)
-    manifest.host_permissions = [ "http://*/*", "https://*/*" ]
+    // Host permissions are intentionally constrained to supported CRM origins.
+    manifest.host_permissions = hostPermissions;
 
     // Web Accessible Resources
     manifest.web_accessible_resources = [
@@ -118,6 +120,11 @@ const build = (target, version) => {
             }
         };
     }
+
+  const broadWildcardHosts = ["http://*/*", "https://*/*", "*://*/*"];
+  if ((manifest.host_permissions || []).some((permission) => broadWildcardHosts.includes(permission))) {
+    throw new Error("Refusing to build manifest with broad wildcard host permissions.");
+  }
 
   return manifest;
 };
