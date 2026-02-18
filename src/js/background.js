@@ -1,31 +1,28 @@
-const browserApi = (typeof browser !== "undefined") ? browser : chrome;
+/* global chrome, browser */
 
-console.log(browserApi);
+(() => {
+  "use strict";
 
+  const ext = (typeof browser !== "undefined") ? browser : chrome;
 
-browserApi.action.onClicked.addListener(async function () {
+  ext.action.onClicked.addListener(async (tab) => {
+    try {
+      if (!tab || !tab.id) return;
+      if (!tab.url || /^(chrome|edge|about|data):/.test(tab.url)) return;
 
-    debugger;
-
-
-    var togglePowerPaneCode = ''
-        + 'var pane = document.querySelector(".crm-power-pane-sections");'
-        + 'var nextValue = (pane.style.display !== "" && pane.style.display !== "none") ? "none" : "block";'
-        + 'pane.style.display = nextValue;'
-
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-
-    // Execute script in the current tab
-    await chrome.scripting.executeScript({
+      await ext.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => {
-            var pane = document.querySelector(".crm-power-pane-sections");
-            var nextValue = (pane.style.display !== "" && pane.style.display !== "none") ? "none" : "block";
-            pane.style.display = nextValue;
-        },
-    })
+          const pane = document.querySelector(".crm-power-pane-sections");
+          if (!pane) return;
 
-    // browser.tabs.executeScript({
-    //     code: togglePowerPaneCode
-    // });
-});
+          const computed = window.getComputedStyle(pane);
+          const isVisible = computed && computed.display !== "none" && pane.style.display !== "none";
+          pane.style.display = isVisible ? "none" : "block";
+        }
+      });
+    } catch (e) {
+      console.error("Failed to toggle Power Pane:", e);
+    }
+  });
+})();
