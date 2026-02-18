@@ -1,17 +1,16 @@
 {
   "name": "power-pane-returns",
   "version": "1.3.0",
-  "description": "After it's initial release, Power Pane quickly became a favorite among CRM users for its ability to streamline workflows and improve productivity. This updated version, 'Strikes Back' against lesser extensions who foolishly thought to usrup the throne. No hidden data collection, just pure CRM goodness",
-  "main": "index.js",
+  "description": "After its initial release, Power Pane quickly became a favorite among CRM users for its ability to streamline workflows and improve productivity. This updated version, 'Strikes Back' against lesser extensions who foolishly thought to usurp the throne. No hidden data collection, just pure CRM goodness",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp",
     "build-chrome": "npm run build -- --target=chrome",
     "build-firefox": "npm run build -- --target=firefox",
-    "build-edge": "npm run build -- --target=edge",
+    "build-edge-chromium": "npm run build -- --target=edge-chromium",
     "build-all": "node ./build/all"
   },
-  "author": "Onur Menal,Oguzhan Can,Ryan Rettinger",
+  "author": "Onur Menal, Oguzhan Can, Ryan Rettinger",
   "license": "ISC",
   "devDependencies": {
     "gulp": "^5.0.1",
