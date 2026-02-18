@@ -1,92 +1,125 @@
-/* global chrome, browser */
+(function () {
+    "use strict";
 
-(() => {
-  "use strict";
+    const ext = typeof browser === "undefined" ? chrome : browser;
 
-  const ext = (typeof browser !== "undefined") ? browser : chrome;
-  const STORAGE_KEY = "powerPaneOptions"; // { [actionId: string]: boolean }
+    const Interval = {
+        PowerPaneControl: {
+            Pointer: undefined,
+            Count: 0,
+            MaxTryCount: 10
+        }
+    };
 
-  function getTopDocument() {
-    try {
-      return window.top.document;
-    } catch (e) {
-      return window.document;
-    }
-  }
+    const ApplicationType = {
+        DynamicsCRM: "Dynamics CRM",
+        Dynamics365: "Dynamics 365"
+    };
 
-  const Interval = {
-    PowerPaneControl: {
-      Pointer: undefined,
-      Count: 0,
-      MaxTryCount: 15
-    }
-  };
+    function getApplicationType() {
 
-  const ApplicationType = {
-    DynamicsCRM: "Dynamics CRM",
-    Dynamics365: "Dynamics 365"
-  };
+        var mainBody = document.querySelectorAll('body[scroll=no]');
+        var topBar = document.querySelector("div[data-id=topBar]")
 
-  function getApplicationType() {
-    const mainBody = document.querySelectorAll("body[scroll=no]");
-    const topBar = document.querySelector("div[data-id=topBar]");
-
-    if (mainBody && mainBody.length > 0) return ApplicationType.DynamicsCRM;
-    if (topBar) return ApplicationType.Dynamics365;
-    return null;
-  }
-
-  function fadeColor(rgbColor, factor) {
-    try {
-      const rgb = rgbColor.match(/\d+/g).map(Number);
-      const [r, g, b] = rgb;
-      const newR = Math.round(r + (255 - r) * factor);
-      const newG = Math.round(g + (255 - g) * factor);
-      const newB = Math.round(b + (255 - b) * factor);
-      return `rgb(${newR}, ${newG}, ${newB})`;
-    } catch (e) {
-      return rgbColor;
-    }
-  }
-
-  function buildScriptTag(source) {
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = source;
-    return script;
-  }
-
-  function buildPowerPaneButton() {
-    const powerPaneButton = document.createElement("span");
-    powerPaneButton.className = "navTabButton";
-    powerPaneButton.id = "crm-power-pane-button";
-    powerPaneButton.title = "Open Power Pane Returns";
-
-    const linkElement = document.createElement("a");
-    linkElement.className = "navTabButtonLink";
-    linkElement.title = "";
-
-    const linkImageContainerElement = document.createElement("span");
-    linkImageContainerElement.className = "navTabButtonImageContainer";
-
-    const imageElement = document.createElement("img");
-    try {
-      imageElement.src = ext.runtime.getURL("img/icon-48.png");
-    } catch (e) {
-      console.error("URL Image Error: ", e);
+        if (mainBody && mainBody.length > 0) {
+            return ApplicationType.DynamicsCRM
+        } else if (topBar) {
+            return ApplicationType.Dynamics365
+        } else {
+            return null;
+        }
     }
 
-    if (getApplicationType() === ApplicationType.Dynamics365) {
-      const topBarEl = getTopDocument().querySelector("div[data-id=topBar]");
-      const divBG = topBarEl ? window.getComputedStyle(topBarEl).backgroundColor : null;
+    function BuildScriptTag(source) {
+        var script = document.createElement("script");
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', source);
 
-      powerPaneButton.style.cssText = "float:left; width:48px; height:48px;cursor:pointer!important";
-      linkElement.style.cssText = `float:left; width:48px; height:48px;cursor:pointer!important;text-align:center${divBG ? `;background-color:${divBG}` : ""}`;
+        return script;
+    }
 
-      linkElement.style.transition = "background-color 0.3s";
-      if (divBG) {
-        linkElement.addEventListener("mouseenter", function () {
-          linkElement.style.backgroundColor = fadeColor(divBG, 0.5);
+    function BuildSytleTag(source) {
+        var style = document.createElement('link');
+        style.setAttribute('rel', 'stylesheet');
+        style.setAttribute('type', 'text/css');
+        style.setAttribute('href', source);
+        return style;
+    }
+
+    function fadeColor(rgb, factor) {
+        const m = rgb.match(/\d+/g);
+        if (!m || m.length < 3) return rgb;
+        const [r, g, b] = m.map(Number);
+        const f = Math.max(0, Math.min(1, factor));
+        return `rgb(${Math.round(r + (255 - r) * f)}, ${Math.round(g + (255 - g) * f)}, ${Math.round(b + (255 - b) * f)})`;
+    }
+
+    function BuildPowerPaneButton() {
+        var powerPaneButton = document.createElement("span");
+        powerPaneButton.setAttribute('class', 'navTabButton');
+        powerPaneButton.setAttribute('id', 'crm-power-pane-button');
+        powerPaneButton.setAttribute('title', 'Open Power Pane Returns');
+
+
+        var linkElement = document.createElement("a");
+        linkElement.setAttribute("class", "navTabButtonLink");
+        linkElement.setAttribute("title", "");
+
+        var linkImageContainerElement = document.createElement("span");
+        linkImageContainerElement.setAttribute("class", "navTabButtonImageContainer");
+
+        var imageElement = document.createElement("img");
+        try {
+            imageElement.setAttribute("src", ext.runtime.getURL("img/icon-48.png"));
+        } catch (e) {
+            console.error("URL Image Error: ", e);
+        }
+
+        if (getApplicationType() === ApplicationType.Dynamics365) {
+            const topBarEl = window.top.document.getElementById('topBar');
+            const divBG = topBarEl ? window.getComputedStyle(topBarEl).backgroundColor : null;
+
+            // Apply custom styles
+            powerPaneButton.style.cssText = 'float:left; width:48px; height:48px;cursor:pointer!important';
+            linkElement.style.cssText = `float:left; width:48px; height:48px;cursor:pointer!important;text-align:center;background-color:${divBG}`;
+
+            // Add hover effects to the button.
+            linkElement.style.transition = 'background-color 0.3s';
+            if (divBG) {
+                linkElement.addEventListener('mouseenter', function () {
+                    linkElement.style.backgroundColor = fadeColor(divBG, 0.5); // Fade on hover
+                });
+                linkElement.addEventListener('mouseleave', function () {
+                    linkElement.style.backgroundColor = divBG; // Revert on leave
+                });
+            }
+        } else {
+            // Default styling for DynamicsCRM.
+            powerPaneButton.setAttribute('style', 'float:left; width:48px; height:48px;cursor:pointer!important');
+            linkElement.setAttribute("style", "float:left; width:48px; height:48px;cursor:pointer!important;text-align:center");
+            imageElement.style.marginLeft = '-15px';
+        }
+
+
+        linkImageContainerElement.appendChild(imageElement);
+        linkElement.appendChild(linkImageContainerElement);
+        powerPaneButton.appendChild(linkElement);
+
+        return powerPaneButton;
+    }
+
+    function InjectSource(sources) {
+
+        var isPowerPaneInjected = Array.from(window.top.document.scripts).find(function (elem) { return elem.src.indexOf("ui/js/pane.js") > -1 });
+
+        if (isPowerPaneInjected != undefined) { //power pane already injected
+            return;
+        }
+
+        const body = window.top.document.querySelector('body[scroll=no]') || window.top.document.querySelector('body');
+
+        sources.forEach(function (s) {
+            body.appendChild(s);
         });
         linkElement.addEventListener("mouseleave", function () {
           linkElement.style.backgroundColor = divBG;
@@ -102,8 +135,9 @@
     linkElement.appendChild(linkImageContainerElement);
     powerPaneButton.appendChild(linkElement);
 
-    return powerPaneButton;
-  }
+    function InjectPowerPaneButton() {
+        const powerPaneButton = BuildPowerPaneButton();
+        const applicationType = getApplicationType();
 
   function injectPowerPaneButton() {
     const powerPaneButton = buildPowerPaneButton();
@@ -155,7 +189,52 @@
         } catch (e) {
           // ignore bad selectors
         }
-      }
+
+        return false;
+    };
+
+    function Initialize() {
+        Interval.PowerPaneControl.Pointer = setInterval(function () {
+
+            Interval.PowerPaneControl.Count++;
+            if (Interval.PowerPaneControl.Count > Interval.PowerPaneControl.MaxTryCount) {
+                clearInterval(Interval.PowerPaneControl.Pointer);
+            }
+
+            var powerPaneButton = document.getElementById("crm-power-pane-button");
+
+            if (!powerPaneButton) {
+                var injectButtonResult = InjectPowerPaneButton();
+                if (injectButtonResult == false) {
+                    return;
+                }
+
+                const powerPaneTemplate = ext.runtime.getURL("ui/pane.html");
+
+                fetch(powerPaneTemplate)
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Power Pane load failed: " + response.status);
+                        }
+                        return response.text();
+                    })
+                    .then(function (html) {
+                        var content = document.createElement("div");
+                        content.innerHTML = html;
+                        content.className = "crm-power-pane-container";
+
+                        var style = BuildSytleTag(ext.runtime.getURL("ui/css/pane.css"));
+                        var script = BuildScriptTag(ext.runtime.getURL("ui/js/pane.js"));
+
+                        InjectSource([style, script, content]);
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                    });
+            } else {
+                clearInterval(Interval.PowerPaneControl.Pointer);
+            }
+        }, 1000);
     }
 
     // If a section has no visible subgroups, hide the whole section
