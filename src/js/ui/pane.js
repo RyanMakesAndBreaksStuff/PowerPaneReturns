@@ -94,12 +94,12 @@ $(function () {
             var defaultValue = (p.value == null) ? "" : String(p.value);
             $popupParameters.append(
               "<li><span class='crm-power-pane-popup-input-text'>" +
-                p.label +
-                ":</span><input type='text' value='" +
-                defaultValue +
-                "' name='" +
-                key +
-                "'/></li>"
+              p.label +
+              ":</span><input type='text' value='" +
+              defaultValue +
+              "' name='" +
+              key +
+              "'/></li>"
             );
           }, this);
 
@@ -155,12 +155,12 @@ $(function () {
             } else {
               $popupParameters.append(
                 "<li><span class='crm-power-pane-popup-input-text'>" +
-                  p.label +
-                  ":</span><input type='text' value='" +
-                  (p.value == null ? "" : String(p.value)) +
-                  "' name='" +
-                  key +
-                  "'/><span class='crm-power-pane-copy'>Copy it!</span></li>"
+                p.label +
+                ":</span><input type='text' value='" +
+                (p.value == null ? "" : String(p.value)) +
+                "' name='" +
+                key +
+                "'/><span class='crm-power-pane-copy'>Copy it!</span></li>"
               );
             }
           }, this);
@@ -181,7 +181,7 @@ $(function () {
       },
 
       SetButtonBackgrounds: function () {
-        // Reserved for future. (Keeping consistent with previous versions.)
+        // Reserved for future use if needed. Currently button backgrounds are set via CSS only.
       },
     },
 
@@ -346,7 +346,7 @@ $(function () {
 
     Errors: {
       ExecutionError: function (e) {
-        console.error("An error occurred while loading Crm Power Pane.", e);
+        console.error("An error occurred while loading Power Pane.", e);
         $("#crm-power-pane-button").hide();
       },
 
@@ -580,12 +580,18 @@ $(function () {
       $("#advanced_find").on("click", function () {
         try {
           var clientUrl = Xrm.Page.context.getClientUrl();
-          var clientUrlForParams =
-            clientUrl + (window.location.href.indexOf("appid=") > -1 ? "&" : "/main.aspx?");
+          var advancedFindUrl = new URL(clientUrl + "/main.aspx");
+          advancedFindUrl.searchParams.set("pagetype", "advancedfind");
 
-          if (!Xrm.Page.data || !Xrm.Page.data.entity) {
-            window.open(clientUrlForParams + "pagetype=advancedfind", "_blank");
-          } else {
+          var runtimeUrl = new URL(window.top.location.href);
+          ["appid", "forceUCI"].forEach(function (param) {
+            var value = runtimeUrl.searchParams.get(param);
+            if (value) {
+              advancedFindUrl.searchParams.set(param, value);
+            }
+          });
+
+          if (Xrm.Page.data && Xrm.Page.data.entity) {
             var entityName = Xrm.Page.data.entity.getEntityName();
             var etc = null;
 
@@ -596,15 +602,11 @@ $(function () {
             }
 
             if (etc) {
-              window.open(
-                clientUrlForParams + "extraqs=EntityCode%3d" + etc + "&pagetype=advancedfind",
-                "_blank"
-              );
-            } else {
-              // Fallback: open advanced find without entity preselection
-              window.open(clientUrlForParams + "pagetype=advancedfind", "_blank");
+              advancedFindUrl.searchParams.set("extraqs", "EntityCode=" + etc);
             }
           }
+
+          window.open(advancedFindUrl.toString(), "_blank");
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("Unable to open Advanced Find.", "error");
         }
@@ -926,10 +928,10 @@ $(function () {
               var linkId = control.getName() + "-lookup-link";
               var $link = Content.$(
                 '<a id="' +
-                  linkId +
-                  '" class="crm-power-pane-lookup-link" title="Open this record in a new window" style="cursor:pointer;margin-left:5px">' +
-                  externalIcon +
-                  "</a>"
+                linkId +
+                '" class="crm-power-pane-lookup-link" title="Open this record in a new window" style="cursor:pointer;margin-left:5px">' +
+                externalIcon +
+                "</a>"
               );
 
               Content.$("#" + control.getName()).append($link);

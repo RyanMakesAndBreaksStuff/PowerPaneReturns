@@ -71,7 +71,7 @@
     linkImageContainerElement.setAttribute("class", "navTabButtonImageContainer");
 
     const imageElement = document.createElement("img");
-    imageElement.setAttribute("src", ext.runtime.getURL("img/icon-48.png"));
+    imageElement.setAttribute("src", ext.runtime.getURL("img/icon-32.png"));
 
     if (getApplicationType() === ApplicationType.Dynamics365) {
       const topBarEl = getTopDocument().getElementById("topBar");
