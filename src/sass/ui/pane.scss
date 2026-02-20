@@ -131,6 +131,10 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     background-image: url('#{$browserPrefix}/img/action-icons/fetch-xml.png');
 }
 
+.crm-power-pane-subgroup span.advanced-find-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/advanced-find-icon.png');
+}
+
 .crm-power-pane-subgroup span.solutions-icon {
     background-image: url('#{$browserPrefix}/img/action-icons/solutions.png');
 }
@@ -232,17 +236,28 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     background-image: url('#{$browserPrefix}/img/action-icons/target.png');
 }
 
-.crm-power-pane-subgroup span.clone-record {
-    background-image: url('#{$browserPrefix}/img/action-icons/sheep.png');
-    background-size: 27px !important;
+.crm-power-pane-subgroup span.clone-record-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/clone-record-icon.png');
 }
 
 .crm-power-pane-subgroup span.auto-fill {
     background-image: url('#{$browserPrefix}/img/action-icons/robot.png');
 }
 
-.crm-power-pane-subgroup span.go-to-create-form {
-    background-image: url('#{$browserPrefix}/img/action-icons/go-to-create-form.png');
+.crm-power-pane-subgroup span.go-to-create-form-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/go-to-create-form-icon.png');
+}
+
+.crm-power-pane-subgroup span.clear-all-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/clear-all-fields-icon.png');
+}
+
+.crm-power-pane-subgroup span.fill-all-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/fill-all-fields-icon.png');
+}
+
+.crm-power-pane-subgroup span.required-fields-icon {
+    background-image: url('#{$browserPrefix}/img/action-icons/required-fields-icon.png');
 }
 
 .crm-power-pane-subgroup span.form-editor-icon {
@@ -453,9 +468,9 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     }
 }
 
-textarea,
-input[type="text"],
-input[type="search"] {
+#crm-power-pane textarea,
+#crm-power-pane input[type="text"],
+#crm-power-pane input[type="search"] {
     padding: 8px 10px;
     border: 1px solid $border-color;
     border-radius: 4px;
@@ -575,7 +590,7 @@ input[type="search"] {
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-    * {
+    #crm-power-pane * {
         transition: none !important;
     }
 }
