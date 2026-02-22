@@ -31,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ryan8182/PowerPaneReturns.git"
+    "url": "git+https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns.git"
   },
   "keywords": [
     "dynamics",
@@ -46,7 +46,7 @@
     "model-driven app"
   ],
   "bugs": {
-    "url": "https://github.com/Ryan8182/PowerPaneReturns/issues"
+    "url": "https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns/issues"
   },
-  "homepage": "https://github.com/Ryan8182/PowerPaneReturns#readme"
+  "homepage": "https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns#readme"
 }
