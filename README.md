@@ -1,6 +1,8 @@
 Power Pane Returns
 
-## Huge thank you to both Onur Menal the original developer and Oğuzhan Can whose fork I used as my base. Updated Node packages, all new theme for the UI, bunch of new features.
+## Huge thank you to both Onur Menal the original developer and Oğuzhan Can whose fork I used as my base. Updated Node packages, all new theme for the UI, bunch of new features. The options pane can be used to modify the displayed festures.
+
+### Dark mode is default and only option for the initial version.
 
 ## This extension was originally created by Onur Menal. I updated the Node.js packages to their latest versions to ensure compatibility with modern environments.
 
@@ -29,7 +31,12 @@ See `docs/privacy.md` for the release disclosure text.
 
 Click the Power Pane Returns icon next to the Microsoft Dynamics 365 logo, and select your action.
 
-### Coming soon - links to chrome webstore listing
+### Coming soon
+
+- links to chrome webstore listing
+- Add dark/light toggle to options/js
+- Open to suggestions and requests for new features. Email me or use the discussions tab
+-
 
 # Contribute
 
