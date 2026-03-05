@@ -146,7 +146,7 @@ class EdgeBridgeAlarms {
     clearAlarm(name) {
         var wasCleared = false;
         if (this.alarms[name]) {
-            if (this.alarms[name].alarm.startedInterval) {
+            if (this.alarms[name].startedInterval) {
                 window.clearInterval(this.alarms[name].timerHandle);
             }
             else {
