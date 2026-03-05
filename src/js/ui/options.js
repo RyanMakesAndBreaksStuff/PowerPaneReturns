@@ -1,86 +1,143 @@
-if(typeof browser === "undefined") {
-    browser = chrome;
-}
+(function () {
+  "use strict";
 
-// Saves options to chrome.storage
-function saveOptions() {
-    var dataToSave = {}
-    var options = document.forms[0].elements;
-    for (var i = 0; i < options.length; i++) {
-        dataToSave[options[i].id] = options[i].checked
+  const STORAGE_KEY = "powerPaneOptions";
+  const ext = typeof browser !== "undefined" ? browser : chrome;
+
+  function optionsForm() {
+    return document.getElementById("options");
+  }
+
+  function getAllCheckboxes() {
+    return Array.from(optionsForm()?.querySelectorAll("input[type='checkbox']") || []);
+  }
+
+  function showStatus(message, isError) {
+    const status = document.getElementById("status");
+    if (!status) return;
+
+    status.textContent = message;
+    status.style.color = isError ? "#c62828" : "";
+    window.setTimeout(() => {
+      status.textContent = "";
+      status.style.color = "";
+    }, 1200);
+  }
+
+  async function getStoredOptions() {
+    try {
+      const result = await ext.storage.local.get(STORAGE_KEY);
+      const value = result && result[STORAGE_KEY];
+      return value && typeof value === "object" ? value : {};
+    } catch (e) {
+      console.error("Failed to load options:", e);
+      return {};
     }
-    browser.storage.sync.set(dataToSave, function() {
-        // Update status to let user know options were saved.
-        var status = document.getElementById('status');
-        status.textContent = 'Options saved.';
-        setTimeout(function() {
-            status.textContent = '';
-        }, 750);
+  }
+
+  async function setStoredOptions(optionsObj) {
+    try {
+      await ext.storage.local.set({ [STORAGE_KEY]: optionsObj });
+      return true;
+    } catch (e) {
+      console.error("Failed to save options:", e);
+      return false;
+    }
+  }
+
+  function setAllCheckboxes(checked) {
+    getAllCheckboxes().forEach((cb) => {
+      cb.checked = !!checked;
     });
   }
-  
-// Loads options from chrome.storage
-function loadOptions() {
-    browser.storage.sync.get(null, function(options) {
-        for (var option in options) {
-            if (!options.hasOwnProperty(option)) continue;
-            var optionCheckbox = document.getElementById(option);
-            if (optionCheckbox) optionCheckbox.checked = options[option]
-        }
-    });
-}
-  
-// Generates options page based on pane.html content
-function generateOptionsPage() {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", browser.extension.getURL("ui/pane.html"), true);
-    xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            parser = new DOMParser();
-            paneDocument = parser.parseFromString(xmlHttp.responseText, "text/html");
-            var paneSections = paneDocument.getElementsByClassName("crm-power-pane-section");
-            var options = document.getElementById("options");
-            for (var i = 0; i < paneSections.length; i++)
-            {
-                var optionsGroup = document.createElement('div');
-                var groupHeader = document.createElement("h3");
-                groupHeader.innerHTML = paneSections[i].getElementsByClassName("crm-power-pane-header")[0].innerHTML
-                optionsGroup.appendChild(groupHeader);
-                var paneItems = paneSections[i].getElementsByClassName("crm-power-pane-subgroup");
-                for (var j = 0; j < paneItems.length; j++)
-                {
-                    var checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = true;
-                    checkbox.id = paneItems[j].id;
-                    var optionsItem = document.createElement("label");
-                    optionsItem.htmlFor = paneItems[j].id;
-                    optionsItem.appendChild(checkbox);
-                    optionsItem.appendChild(document.createTextNode(paneItems[j].children[0].innerText));
-                    optionsGroup.appendChild(optionsItem);
-                }
-                options.appendChild(optionsGroup);
-            }
-        }
-    }   
-    xmlHttp.send(null);
+
+  async function saveOptions() {
+    const optionsObj = {};
+    for (const cb of getAllCheckboxes()) {
+      if (!cb.id) continue;
+      optionsObj[cb.id] = !!cb.checked;
+    }
+
+    const ok = await setStoredOptions(optionsObj);
+    showStatus(ok ? "Options saved." : "Failed to save options.", !ok);
   }
-  
-document.addEventListener('DOMContentLoaded', function() {
-    generateOptionsPage();
-    loadOptions();
-    saveOptions();
-});
-document.getElementById('save').addEventListener('click', saveOptions);
-document.getElementById('select-all').addEventListener('click', function() {
-    var checkboxes = document.forms[0].elements;
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = true
+
+  async function restoreOptions() {
+    const stored = await getStoredOptions();
+    for (const cb of getAllCheckboxes()) {
+      cb.checked = stored[cb.id] !== false;
     }
-});
-document.getElementById('deselect-all').addEventListener('click', function() {
-    var checkboxes = document.forms[0].elements;
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = false
+  }
+
+  function buildOptionCheckbox(actionId, actionLabel, checkedByDefault) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "crm-power-pane-option";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = actionId;
+    checkbox.checked = checkedByDefault;
+
+    const label = document.createElement("label");
+    label.htmlFor = actionId;
+    label.textContent = actionLabel;
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+    return wrapper;
+  }
+
+  async function generateOptionsPage() {
+    const container = optionsForm();
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const paneUrl = ext.runtime.getURL("ui/pane.html");
+    const response = await fetch(paneUrl);
+    if (!response.ok) throw new Error(`Failed to fetch pane.html: ${response.status}`);
+
+    const htmlText = await response.text();
+    const parser = new DOMParser();
+    const paneDocument = parser.parseFromString(htmlText, "text/html");
+    const paneSections = paneDocument.querySelectorAll(".crm-power-pane-section");
+
+    for (const section of paneSections) {
+      const paneItems = section.querySelectorAll(".crm-power-pane-subgroup");
+      if (!paneItems.length) continue;
+
+      const optionsGroup = document.createElement("div");
+      optionsGroup.className = "options-group";
+
+      const header = section.querySelector(".crm-power-pane-header");
+      const groupHeader = document.createElement("h3");
+      groupHeader.textContent = (header?.textContent || "Other").trim() || "Other";
+      optionsGroup.appendChild(groupHeader);
+
+      for (const item of paneItems) {
+        const actionId = item.getAttribute("id");
+        if (!actionId) continue;
+
+        const actionLabel = (item.textContent || actionId).trim();
+        optionsGroup.appendChild(buildOptionCheckbox(actionId, actionLabel, true));
+      }
+
+      container.appendChild(optionsGroup);
     }
-});
+
+    await restoreOptions();
+  }
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    try {
+      await generateOptionsPage();
+    } catch (e) {
+      console.error("Options generation error:", e);
+      showStatus("Failed to render options page. See console.", true);
+    }
+
+    document.getElementById("save")?.addEventListener("click", saveOptions);
+    document.getElementById("select-all")?.addEventListener("click", () => setAllCheckboxes(true));
+    document.getElementById("deselect-all")?.addEventListener("click", () => setAllCheckboxes(false));
+  });
+})();
