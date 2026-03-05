@@ -31,9 +31,9 @@ See `docs/privacy.md` for the release disclosure text.
 
 Click the Power Pane Returns icon next to the Microsoft Dynamics 365 logo, and select your action.
 
-### Coming soon
+- <a href="https://chromewebstore.google.com/detail/power-pane-returns/npegkibkaodgpiboiilfodmhgafegiml">Chrome Webstore Link</a>
 
-- links to chrome webstore listing
+### Coming soon
 - Add dark/light toggle to options/js
 - Open to suggestions and requests for new features. Email me or use the discussions tab
 -
