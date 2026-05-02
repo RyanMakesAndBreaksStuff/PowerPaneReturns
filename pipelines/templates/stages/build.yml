@@ -21,13 +21,12 @@ stages:
       
     - task: NodeTool@0
       inputs:
-        versionSpec: '10.x'
+        versionSpec: '22.x'
       displayName: 'Install Node.js'
     - script: |
-        npm install --only=dev
-        npm install
+        npm ci
         npm run build-all -- --build-version=$(build.buildNumber)
-      displayName: 'npm install and run all build scripts'
+      displayName: 'npm ci and run all build scripts'
     - script: |
         echo "Tagging Build: ${BUILD_NUMBER}"
         git tag ${BUILD_NUMBER}
@@ -49,13 +48,6 @@ stages:
         rootFolderOrFile: '$(build.sourcesDirectory)/dist/firefox' 
         includeRootFolder: false 
         archiveFile: '$(build.artifactStagingDirectory)/$(build.buildNumber).firefox.zip'
-      condition: and(succeeded(), eq(${{ parameters.publish }}, true))
-    - task: ArchiveFiles@2
-      displayName: 'Archive edge extension'
-      inputs:
-        rootFolderOrFile: '$(build.sourcesDirectory)/dist/edge' 
-        includeRootFolder: false 
-        archiveFile: '$(build.artifactStagingDirectory)/$(build.buildNumber).edge.zip'
       condition: and(succeeded(), eq(${{ parameters.publish }}, true))
     - task: ArchiveFiles@2
       displayName: 'Archive edge-chromium extension'
