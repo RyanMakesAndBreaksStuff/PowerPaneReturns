@@ -18,3 +18,10 @@ test("popup rows avoid html header writes and string concat markup", () => {
   );
   assert.doesNotMatch(paneSource, /li \+= ["'][\s\S]*crm-power-pane-lookup-url[\s\S]*\+/);
 });
+
+test("synchronous XMLHttpRequest user-info flow is removed", () => {
+  assert.doesNotMatch(paneSource, /open\("GET",\s*query,\s*false\)/);
+  assert.doesNotMatch(paneSource, /X-Requested-Width/);
+  assert.match(paneSource, /fetchLegacyJson:\s*function\s*\(/);
+  assert.match(paneSource, /\$\("#user-info"\)\.on\("click",\s*async function\s*\(/);
+});

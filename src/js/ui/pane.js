@@ -303,6 +303,25 @@ $(function () {
           return res.json();
         });
       },
+
+      // Fetch JSON from legacy CRM endpoints (same-origin)
+      fetchLegacyJson: function (absoluteUrl) {
+        return fetch(absoluteUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json, text/javascript, */*",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          credentials: "same-origin",
+        }).then(function (res) {
+          if (!res.ok) {
+            return res.text().then(function (t) {
+              throw new Error(t || ("HTTP " + res.status));
+            });
+          }
+          return res.json();
+        });
+      },
     },
 
     RegisterjQueryExtensions: function () {
@@ -628,10 +647,9 @@ $(function () {
         }
       });
 
-      $("#user-info").on("click", function () {
+      $("#user-info").on("click", async function () {
         try {
-          // Note: This still uses the legacy 2011 endpoint to keep behavior consistent.
-          // It is synchronous in the original implementation; we keep it synchronous here too.
+          // Note: Keep the legacy 2011 endpoint for behavior compatibility.
           function getUserRoles() {
             var userId = Xrm.Page.context.getUserId();
             var serverUrl = Xrm.Page.context.getClientUrl();
@@ -640,15 +658,16 @@ $(function () {
               "/XRMServices/2011/OrganizationData.svc/SystemUserSet?$select=systemuserroles_association/Name,systemuserroles_association/RoleId&$expand=systemuserroles_association&$filter=SystemUserId eq guid'" +
               userId +
               "'";
-            var service = new XMLHttpRequest();
-            service.open("GET", query, false);
-            service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
-            service.setRequestHeader("Accept", "application/json, text/javascript, */*");
-            service.send(null);
-            var requestResults = JSON.parse(service.responseText).d;
-            var results = requestResults.results[0].systemuserroles_association.results;
-            return results.map(function (r) {
-              return { name: r.Name, id: r.RoleId, entityType: "role" };
+            return CrmPowerPane.Utils.fetchLegacyJson(query).then(function (responseData) {
+              var requestResults = responseData && responseData.d ? responseData.d : { results: [] };
+              var first = requestResults.results && requestResults.results.length ? requestResults.results[0] : null;
+              var results =
+                first && first.systemuserroles_association && first.systemuserroles_association.results
+                  ? first.systemuserroles_association.results
+                  : [];
+              return results.map(function (r) {
+                return { name: r.Name, id: r.RoleId, entityType: "role" };
+              });
             });
           }
 
@@ -660,23 +679,30 @@ $(function () {
               "/XRMServices/2011/OrganizationData.svc/SystemUserSet?$select=teammembership_association/Name,teammembership_association/TeamId&$expand=teammembership_association&$filter=SystemUserId eq guid'" +
               userId +
               "'";
-            var service = new XMLHttpRequest();
-            service.open("GET", query, false);
-            service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
-            service.setRequestHeader("Accept", "application/json, text/javascript, */*");
-            service.send(null);
-            var requestResults = JSON.parse(service.responseText).d;
-            var results = requestResults.results[0].teammembership_association.results;
-            return results.map(function (t) {
-              return { name: t.Name, id: t.TeamId, entityType: "team" };
+            return CrmPowerPane.Utils.fetchLegacyJson(query).then(function (responseData) {
+              var requestResults = responseData && responseData.d ? responseData.d : { results: [] };
+              var first = requestResults.results && requestResults.results.length ? requestResults.results[0] : null;
+              var results =
+                first && first.teammembership_association && first.teammembership_association.results
+                  ? first.teammembership_association.results
+                  : [];
+              return results.map(function (t) {
+                return { name: t.Name, id: t.TeamId, entityType: "team" };
+              });
             });
           }
 
+          var userName = Xrm.Page.context.getUserName();
+          var userId = Xrm.Page.context.getUserId();
+          var userDetails = await Promise.all([getUserRoles(), getUserTeams()]);
+          var userRoles = userDetails[0];
+          var userTeams = userDetails[1];
+
           CrmPowerPane.UI.BuildOutputPopup("User Info", "Current user information", [
-            { label: "User name", value: Xrm.Page.context.getUserName() },
-            { label: "User id", value: Xrm.Page.context.getUserId() },
-            { label: "User Roles", value: getUserRoles() },
-            { label: "User Teams", value: getUserTeams() },
+            { label: "User name", value: userName },
+            { label: "User id", value: userId },
+            { label: "User Roles", value: userRoles },
+            { label: "User Teams", value: userTeams },
           ]);
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred while getting the user information.", "error");
