@@ -227,6 +227,43 @@ $(function () {
         return new XMLSerializer().serializeToString(resultDoc);
       },
 
+      EncodeXmlText: function (text) {
+        var sourceText = text == null ? "" : String(text);
+
+        if (
+          typeof CrmEncodeDecode !== "undefined" &&
+          CrmEncodeDecode &&
+          typeof CrmEncodeDecode.CrmXmlEncode === "function"
+        ) {
+          return CrmEncodeDecode.CrmXmlEncode(sourceText);
+        }
+
+        return sourceText
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+      },
+
+      BuildRetrieveMultipleSoapRequest: function (fetchXml) {
+        return (
+          '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
+          '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">' +
+          '<request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">' +
+          '<b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">' +
+          "<b:KeyValuePairOfstringanyType>" +
+          "<c:key>Query</c:key>" +
+          '<c:value i:type="b:FetchExpression"><b:Query>' +
+          CrmPowerPane.Utils.EncodeXmlText(fetchXml) +
+          "</b:Query></c:value></b:KeyValuePairOfstringanyType></b:Parameters>" +
+          '<b:RequestId i:nil="true"/>' +
+          "<b:RequestName>RetrieveMultiple</b:RequestName>" +
+          "</request>" +
+          "</Execute></s:Body></s:Envelope>"
+        );
+      },
+
       canNotExecute: function (requireForm) {
         try {
           var xrm = CrmPowerPane.TargetFrame.GetXrm();
@@ -1495,23 +1532,7 @@ $(function () {
         var $resultArea = $("#crm-power-pane-fetchxml-result-area");
         $resultArea.val("").css("color", "#000000");
 
-        var request = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>';
-        request +=
-          '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">' +
-          '<request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">' +
-          '<b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">' +
-          "<b:KeyValuePairOfstringanyType>" +
-          "<c:key>Query</c:key>" +
-          '<c:value i:type="b:FetchExpression"><b:Query>';
-
-        request += CrmEncodeDecode.CrmXmlEncode(xml);
-
-        request +=
-          "</b:Query></c:value></b:KeyValuePairOfstringanyType></b:Parameters>" +
-          '<b:RequestId i:nil="true"/>' +
-          "<b:RequestName>RetrieveMultiple</b:RequestName>" +
-          "</request>" +
-          "</Execute></s:Body></s:Envelope>";
+        var request = CrmPowerPane.Utils.BuildRetrieveMultipleSoapRequest(xml);
 
         $.ajax({
           type: "POST",

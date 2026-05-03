@@ -25,3 +25,10 @@ test("synchronous XMLHttpRequest user-info flow is removed", () => {
   assert.match(paneSource, /fetchLegacyJson:\s*function\s*\(/);
   assert.match(paneSource, /\$\("#user-info"\)\.on\("click",\s*async function\s*\(/);
 });
+
+test("FetchXML SOAP request uses extracted helpers", () => {
+  assert.match(paneSource, /EncodeXmlText:\s*function\s*\(\s*text\s*\)/);
+  assert.match(paneSource, /BuildRetrieveMultipleSoapRequest:\s*function\s*\(\s*fetchXml\s*\)/);
+  assert.match(paneSource, /request\s*=\s*CrmPowerPane\.Utils\.BuildRetrieveMultipleSoapRequest\(\s*xml\s*\)/);
+  assert.doesNotMatch(paneSource, /request\s*\+=\s*CrmEncodeDecode\.CrmXmlEncode\(\s*xml\s*\)/);
+});
