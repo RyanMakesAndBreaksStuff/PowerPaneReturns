@@ -14,6 +14,51 @@ $(function () {
       NotificationTimer: null,
     },
     UI: {
+      SetText: function ($root, selector, value) {
+        var textValue = value == null ? "" : String(value);
+        return $root.find(selector).text(textValue);
+      },
+
+      CreatePopupLabel: function (label) {
+        return $("<span>").addClass("crm-power-pane-popup-input-text").text(String(label) + ":");
+      },
+
+      AppendPopupInputRow: function ($popupParameters, label, name, value, includeCopyButton) {
+        var $input = $("<input>").attr("type", "text").attr("name", name).val(value == null ? "" : String(value));
+        var $row = $("<li>").append(CrmPowerPane.UI.CreatePopupLabel(label)).append($input);
+
+        if (includeCopyButton === true) {
+          $row.append($("<span>").addClass("crm-power-pane-copy").text("Copy it!"));
+        }
+
+        $popupParameters.append($row);
+      },
+
+      AppendPopupLookupRow: function ($popupParameters, label, items) {
+        var $lookupList = $("<ul>");
+        var $row = $("<li>").append(CrmPowerPane.UI.CreatePopupLabel(label)).append($lookupList);
+
+        (items || []).forEach(function (item) {
+          var url =
+            Xrm.Page.context.getClientUrl() +
+            "/main.aspx?etn=" +
+            (item && item.entityType ? item.entityType : "") +
+            "&id=" +
+            (item && item.id ? item.id : "") +
+            "&pagetype=entityrecord";
+
+          var $lookupLink = $("<a>")
+            .attr("href", "#")
+            .addClass("crm-power-pane-lookup-url")
+            .attr("data-url", url)
+            .text(item && item.name ? item.name : "");
+
+          $lookupList.append($("<li>").append($lookupLink));
+        });
+
+        $popupParameters.append($row);
+      },
+
       ShowNotification: function (message, type, time) {
         window.clearTimeout(CrmPowerPane.Constants.NotificationTimer);
 
@@ -22,7 +67,7 @@ $(function () {
 
         var className = CrmPowerPane.Constants.NotificationClassPrefix + type;
         var $notification = $("#crm-power-pane-notification");
-        $notification.find("span").html(message);
+        CrmPowerPane.UI.SetText($notification, "span", message);
         $notification.attr("class", "");
         $notification.addClass(className).fadeIn(CrmPowerPane.Constants.SlideTime);
 
@@ -63,8 +108,8 @@ $(function () {
 
         this.Initialize = function () {
           var $popup = $("#crm-power-pane-popup");
-          $popup.find("h1").html(this.Header).toggle(this.Header != null);
-          $popup.find("p").html(this.Description).toggle(this.Description != null);
+          CrmPowerPane.UI.SetText($popup, "h1", this.Header).toggle(this.Header != null);
+          CrmPowerPane.UI.SetText($popup, "p", this.Description).toggle(this.Description != null);
           $popup.find("ul").find("li").remove();
 
           $popup.off("keyup").on("keyup", function (event) {
@@ -91,16 +136,7 @@ $(function () {
 
           Object.keys(this.Parameters).forEach(function (key) {
             var p = this.Parameters[key];
-            var defaultValue = (p.value == null) ? "" : String(p.value);
-            $popupParameters.append(
-              "<li><span class='crm-power-pane-popup-input-text'>" +
-              p.label +
-              ":</span><input type='text' value='" +
-              defaultValue +
-              "' name='" +
-              key +
-              "'/></li>"
-            );
+            CrmPowerPane.UI.AppendPopupInputRow($popupParameters, p.label, key, p.value, false);
           }, this);
 
           $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
@@ -139,29 +175,9 @@ $(function () {
             var p = this.Parameters[key];
 
             if (Array.isArray(p.value)) {
-              var li = "<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><ul>";
-              p.value.forEach(function (item) {
-                var url =
-                  Xrm.Page.context.getClientUrl() +
-                  "/main.aspx?etn=" +
-                  item.entityType +
-                  "&id=" +
-                  item.id +
-                  "&pagetype=entityrecord";
-                li += "<li><a href='#' class='crm-power-pane-lookup-url' data-url='" + url + "'>" + item.name + "</a></li>";
-              });
-              li += "</ul></li>";
-              $popupParameters.append(li);
+              CrmPowerPane.UI.AppendPopupLookupRow($popupParameters, p.label, p.value);
             } else {
-              $popupParameters.append(
-                "<li><span class='crm-power-pane-popup-input-text'>" +
-                p.label +
-                ":</span><input type='text' value='" +
-                (p.value == null ? "" : String(p.value)) +
-                "' name='" +
-                key +
-                "'/><span class='crm-power-pane-copy'>Copy it!</span></li>"
-              );
+              CrmPowerPane.UI.AppendPopupInputRow($popupParameters, p.label, key, p.value, true);
             }
           }, this);
 
@@ -805,7 +821,7 @@ $(function () {
                 CrmPowerPane.Utils.copyToClipboard(attributeLogicalName).then(function (ok) {
                   if (ok) {
                     CrmPowerPane.UI.ShowNotification(
-                      "Copied <b>\"" + attributeLogicalName + "\"</b> to clipboard.",
+                      'Copied "' + attributeLogicalName + '" to clipboard.',
                       "success"
                     );
                   } else {
@@ -854,7 +870,7 @@ $(function () {
           });
 
           if (overallStatus === "changed") {
-            CrmPowerPane.UI.ShowNotification("Added option values to all option labels (like <b>#value#</b>).");
+            CrmPowerPane.UI.ShowNotification("Added option values to all option labels (like #value#).");
           } else if (overallStatus === "reverted") {
             CrmPowerPane.UI.ShowNotification("Removed option values from all option labels.");
           }
