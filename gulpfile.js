@@ -4,7 +4,6 @@ var gulp = require('gulp'),
   dartSass = require('sass'),
   sass = require('gulp-sass')(dartSass),
   sassVariables = require('gulp-sass-variables'),
-  webpack = require('webpack-stream'),
   fs = require('fs'),
   manifestBuilder = require('./src/js/util/manifest-builder');
 
@@ -46,13 +45,6 @@ gulp.task('img', function () {
 });
 
 gulp.task('js', function () {
-
-  // Copy API Bridges
-  if (argv.target == 'edge') {
-    gulp.src(['src/assets/lib/edge/*.js'])
-      .pipe(gulp.dest(`dist/${argv.target}`));
-  }
-
   return gulp.src(['src/js/*.js'])
     .pipe(gulp.dest(`dist/${argv.target}/js`));
 });

@@ -13,7 +13,224 @@ $(function () {
       NotificationClassPrefix: "crm-power-pane-",
       NotificationTimer: null,
     },
+    ThemeSelector: {
+      StorageKey: "crm-power-pane-theme",
+      Themes: [
+        { id: "default", name: "Default", modes: ["dark"] },
+        { id: "dark-matter", name: "Dark Matter", modes: ["light", "dark"] },
+        { id: "velvet-void", name: "Velvet Void", modes: ["light", "dark"] },
+        { id: "plasma-ice", name: "Plasma Ice", modes: ["light", "dark"] },
+        { id: "aurora-rift", name: "Aurora Rift", modes: ["light", "dark"] },
+      ],
+
+      DefaultSelection: {
+        theme: "default",
+        mode: "dark",
+      },
+
+      FindTheme: function (themeId) {
+        return this.Themes.filter(function (theme) {
+          return theme.id === themeId;
+        })[0] || this.Themes[0];
+      },
+
+      NormalizeSelection: function (selection) {
+        var fallback = {
+          theme: this.DefaultSelection.theme,
+          mode: this.DefaultSelection.mode,
+        };
+        var theme = selection && selection.theme ? this.FindTheme(selection.theme) : this.Themes[0];
+        var mode = selection && selection.mode ? selection.mode : theme.modes[0];
+
+        if (theme.modes.indexOf(mode) === -1) {
+          mode = theme.modes[0];
+        }
+
+        fallback.theme = theme.id;
+        fallback.mode = mode;
+        return fallback;
+      },
+
+      LoadSelection: function () {
+        try {
+          return this.NormalizeSelection(JSON.parse(window.localStorage.getItem(this.StorageKey)));
+        } catch (e) {
+          return this.NormalizeSelection(null);
+        }
+      },
+
+      SaveSelection: function (selection) {
+        try {
+          window.localStorage.setItem("crm-power-pane-theme", JSON.stringify(selection));
+        } catch (e) {
+          /* Storage can be blocked in embedded contexts. */
+        }
+      },
+
+      ApplySelection: function (selection) {
+        var normalized = this.NormalizeSelection(selection);
+        var $pane = $("#crm-power-pane");
+
+        $pane.removeClass(function (_index, className) {
+          return (className || "")
+            .split(/\s+/)
+            .filter(function (name) {
+              return name.indexOf("crm-power-pane-theme-") === 0 || name.indexOf("crm-power-pane-mode-") === 0;
+            })
+            .join(" ");
+        });
+
+        $pane.addClass("crm-power-pane-theme-" + normalized.theme);
+        $pane.addClass("crm-power-pane-mode-" + normalized.mode);
+        this.SaveSelection(normalized);
+        this.UpdateSelectedState(normalized);
+      },
+
+      UpdateSelectedState: function (selection) {
+        var normalized = this.NormalizeSelection(selection);
+        var $list = $("#crm-power-pane-theme-list");
+
+        $list.find(".crm-power-pane-theme-row").removeClass("selected");
+        $list.find(".crm-power-pane-theme-mode").removeClass("selected").attr("aria-pressed", "false");
+        $list
+          .find('.crm-power-pane-theme-row[data-theme-id="' + normalized.theme + '"]')
+          .addClass("selected")
+          .find('.crm-power-pane-theme-mode[data-mode="' + normalized.mode + '"]')
+          .addClass("selected")
+          .attr("aria-pressed", "true");
+      },
+
+      RenderList: function () {
+        var self = this;
+        var $list = $("#crm-power-pane-theme-list").empty();
+
+        this.Themes.forEach(function (theme) {
+          var $row = $("<li>").addClass("crm-power-pane-theme-row").attr("data-theme-id", theme.id);
+          var $name = $("<button>")
+            .attr("type", "button")
+            .addClass("crm-power-pane-theme-name")
+            .text(theme.name)
+            .on("click", function () {
+              self.ApplySelection({ theme: theme.id, mode: theme.modes[0] });
+            });
+
+          $row.append($name);
+
+          if (theme.modes.length > 1) {
+            var $modeGroup = $("<span>").addClass("crm-power-pane-theme-mode-group");
+            [
+              { mode: "light", icon: "☀", label: "Light mode" },
+              { mode: "dark", icon: "☾", label: "Dark mode" },
+            ].forEach(function (item) {
+              $modeGroup.append(
+                $("<button>")
+                  .attr("type", "button")
+                  .attr("aria-label", theme.name + " " + item.label)
+                  .attr("aria-pressed", "false")
+                  .attr("data-mode", item.mode)
+                  .addClass("crm-power-pane-theme-mode")
+                  .text(item.icon)
+                  .on("click", function () {
+                    self.ApplySelection({ theme: theme.id, mode: item.mode });
+                  })
+              );
+            });
+            $row.append($modeGroup);
+          } else {
+            $row.append($("<span>").addClass("crm-power-pane-theme-mode-group"));
+          }
+
+          $list.append($row);
+        });
+      },
+
+      Open: function () {
+        $("#crm-power-pane-theme-modal-bg").fadeIn(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-modal").fadeIn(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-modal").find("button").first().focus();
+      },
+
+      Close: function () {
+        $("#crm-power-pane-theme-modal").fadeOut(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-modal-bg").fadeOut(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-trigger").focus();
+      },
+
+      RegisterEvents: function () {
+        var self = this;
+
+        this.RenderList();
+        this.ApplySelection(this.LoadSelection());
+
+        $("#crm-power-pane-theme-trigger").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.Open();
+        });
+
+        $("#crm-power-pane-theme-modal-bg, .crm-power-pane-theme-close").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.Close();
+        });
+
+        $("#crm-power-pane-theme-modal").on("click", function (e) {
+          e.stopPropagation();
+        });
+
+        $(document).on("keydown", function (e) {
+          if (e.key === "Escape" && $("#crm-power-pane-theme-modal").is(":visible")) {
+            self.Close();
+          }
+        });
+      },
+    },
     UI: {
+      SetText: function ($root, selector, value) {
+        var textValue = value == null ? "" : String(value);
+        return $root.find(selector).text(textValue);
+      },
+
+      CreatePopupLabel: function (label) {
+        return $("<span>").addClass("crm-power-pane-popup-input-text").text(String(label) + ":");
+      },
+
+      AppendPopupInputRow: function ($popupParameters, label, name, value, includeCopyButton) {
+        var $input = $("<input>").attr("type", "text").attr("name", name).val(value == null ? "" : String(value));
+        var $row = $("<li>").append(CrmPowerPane.UI.CreatePopupLabel(label)).append($input);
+
+        if (includeCopyButton === true) {
+          $row.append($("<span>").addClass("crm-power-pane-copy").text("Copy it!"));
+        }
+
+        $popupParameters.append($row);
+      },
+
+      AppendPopupLookupRow: function ($popupParameters, label, items) {
+        var $lookupList = $("<ul>");
+        var $row = $("<li>").append(CrmPowerPane.UI.CreatePopupLabel(label)).append($lookupList);
+
+        (items || []).forEach(function (item) {
+          var url =
+            Xrm.Page.context.getClientUrl() +
+            "/main.aspx?etn=" +
+            (item && item.entityType ? item.entityType : "") +
+            "&id=" +
+            (item && item.id ? item.id : "") +
+            "&pagetype=entityrecord";
+
+          var $lookupLink = $("<a>")
+            .attr("href", "#")
+            .addClass("crm-power-pane-lookup-url")
+            .attr("data-url", url)
+            .text(item && item.name ? item.name : "");
+
+          $lookupList.append($("<li>").append($lookupLink));
+        });
+
+        $popupParameters.append($row);
+      },
+
       ShowNotification: function (message, type, time) {
         window.clearTimeout(CrmPowerPane.Constants.NotificationTimer);
 
@@ -22,7 +239,7 @@ $(function () {
 
         var className = CrmPowerPane.Constants.NotificationClassPrefix + type;
         var $notification = $("#crm-power-pane-notification");
-        $notification.find("span").html(message);
+        CrmPowerPane.UI.SetText($notification, "span", message);
         $notification.attr("class", "");
         $notification.addClass(className).fadeIn(CrmPowerPane.Constants.SlideTime);
 
@@ -63,8 +280,8 @@ $(function () {
 
         this.Initialize = function () {
           var $popup = $("#crm-power-pane-popup");
-          $popup.find("h1").html(this.Header).toggle(this.Header != null);
-          $popup.find("p").html(this.Description).toggle(this.Description != null);
+          CrmPowerPane.UI.SetText($popup, "h1", this.Header).toggle(this.Header != null);
+          CrmPowerPane.UI.SetText($popup, "p", this.Description).toggle(this.Description != null);
           $popup.find("ul").find("li").remove();
 
           $popup.off("keyup").on("keyup", function (event) {
@@ -91,16 +308,7 @@ $(function () {
 
           Object.keys(this.Parameters).forEach(function (key) {
             var p = this.Parameters[key];
-            var defaultValue = (p.value == null) ? "" : String(p.value);
-            $popupParameters.append(
-              "<li><span class='crm-power-pane-popup-input-text'>" +
-              p.label +
-              ":</span><input type='text' value='" +
-              defaultValue +
-              "' name='" +
-              key +
-              "'/></li>"
-            );
+            CrmPowerPane.UI.AppendPopupInputRow($popupParameters, p.label, key, p.value, false);
           }, this);
 
           $popup.fadeIn(CrmPowerPane.Constants.SlideTime);
@@ -139,29 +347,9 @@ $(function () {
             var p = this.Parameters[key];
 
             if (Array.isArray(p.value)) {
-              var li = "<li><span class='crm-power-pane-popup-input-text'>" + p.label + ":</span><ul>";
-              p.value.forEach(function (item) {
-                var url =
-                  Xrm.Page.context.getClientUrl() +
-                  "/main.aspx?etn=" +
-                  item.entityType +
-                  "&id=" +
-                  item.id +
-                  "&pagetype=entityrecord";
-                li += "<li><a href='#' class='crm-power-pane-lookup-url' data-url='" + url + "'>" + item.name + "</a></li>";
-              });
-              li += "</ul></li>";
-              $popupParameters.append(li);
+              CrmPowerPane.UI.AppendPopupLookupRow($popupParameters, p.label, p.value);
             } else {
-              $popupParameters.append(
-                "<li><span class='crm-power-pane-popup-input-text'>" +
-                p.label +
-                ":</span><input type='text' value='" +
-                (p.value == null ? "" : String(p.value)) +
-                "' name='" +
-                key +
-                "'/><span class='crm-power-pane-copy'>Copy it!</span></li>"
-              );
+              CrmPowerPane.UI.AppendPopupInputRow($popupParameters, p.label, key, p.value, true);
             }
           }, this);
 
@@ -209,6 +397,43 @@ $(function () {
 
         var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
         return new XMLSerializer().serializeToString(resultDoc);
+      },
+
+      EncodeXmlText: function (text) {
+        var sourceText = text == null ? "" : String(text);
+
+        if (
+          typeof CrmEncodeDecode !== "undefined" &&
+          CrmEncodeDecode &&
+          typeof CrmEncodeDecode.CrmXmlEncode === "function"
+        ) {
+          return CrmEncodeDecode.CrmXmlEncode(sourceText);
+        }
+
+        return sourceText
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+      },
+
+      BuildRetrieveMultipleSoapRequest: function (fetchXml) {
+        return (
+          '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
+          '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">' +
+          '<request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">' +
+          '<b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">' +
+          "<b:KeyValuePairOfstringanyType>" +
+          "<c:key>Query</c:key>" +
+          '<c:value i:type="b:FetchExpression"><b:Query>' +
+          CrmPowerPane.Utils.EncodeXmlText(fetchXml) +
+          "</b:Query></c:value></b:KeyValuePairOfstringanyType></b:Parameters>" +
+          '<b:RequestId i:nil="true"/>' +
+          "<b:RequestName>RetrieveMultiple</b:RequestName>" +
+          "</request>" +
+          "</Execute></s:Body></s:Envelope>"
+        );
       },
 
       canNotExecute: function (requireForm) {
@@ -276,6 +501,25 @@ $(function () {
             Accept: "application/json",
             "OData-MaxVersion": "4.0",
             "OData-Version": "4.0",
+          },
+          credentials: "same-origin",
+        }).then(function (res) {
+          if (!res.ok) {
+            return res.text().then(function (t) {
+              throw new Error(t || ("HTTP " + res.status));
+            });
+          }
+          return res.json();
+        });
+      },
+
+      // Fetch JSON from legacy CRM endpoints (same-origin)
+      fetchLegacyJson: function (absoluteUrl) {
+        return fetch(absoluteUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json, text/javascript, */*",
+            "X-Requested-With": "XMLHttpRequest",
           },
           credentials: "same-origin",
         }).then(function (res) {
@@ -411,6 +655,8 @@ $(function () {
       $(".crm-power-pane-subgroup").bindFirst("click", function () {
         setContext();
       });
+
+      CrmPowerPane.ThemeSelector.RegisterEvents();
 
       // Toggle pane
       $(document).on("click", "#crm-power-pane-button", function (e) {
@@ -612,10 +858,9 @@ $(function () {
         }
       });
 
-      $("#user-info").on("click", function () {
+      $("#user-info").on("click", async function () {
         try {
-          // Note: This still uses the legacy 2011 endpoint to keep behavior consistent.
-          // It is synchronous in the original implementation; we keep it synchronous here too.
+          // Note: Keep the legacy 2011 endpoint for behavior compatibility.
           function getUserRoles() {
             var userId = Xrm.Page.context.getUserId();
             var serverUrl = Xrm.Page.context.getClientUrl();
@@ -624,15 +869,16 @@ $(function () {
               "/XRMServices/2011/OrganizationData.svc/SystemUserSet?$select=systemuserroles_association/Name,systemuserroles_association/RoleId&$expand=systemuserroles_association&$filter=SystemUserId eq guid'" +
               userId +
               "'";
-            var service = new XMLHttpRequest();
-            service.open("GET", query, false);
-            service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
-            service.setRequestHeader("Accept", "application/json, text/javascript, */*");
-            service.send(null);
-            var requestResults = JSON.parse(service.responseText).d;
-            var results = requestResults.results[0].systemuserroles_association.results;
-            return results.map(function (r) {
-              return { name: r.Name, id: r.RoleId, entityType: "role" };
+            return CrmPowerPane.Utils.fetchLegacyJson(query).then(function (responseData) {
+              var requestResults = responseData && responseData.d ? responseData.d : { results: [] };
+              var first = requestResults.results && requestResults.results.length ? requestResults.results[0] : null;
+              var results =
+                first && first.systemuserroles_association && first.systemuserroles_association.results
+                  ? first.systemuserroles_association.results
+                  : [];
+              return results.map(function (r) {
+                return { name: r.Name, id: r.RoleId, entityType: "role" };
+              });
             });
           }
 
@@ -644,23 +890,30 @@ $(function () {
               "/XRMServices/2011/OrganizationData.svc/SystemUserSet?$select=teammembership_association/Name,teammembership_association/TeamId&$expand=teammembership_association&$filter=SystemUserId eq guid'" +
               userId +
               "'";
-            var service = new XMLHttpRequest();
-            service.open("GET", query, false);
-            service.setRequestHeader("X-Requested-Width", "XMLHttpRequest");
-            service.setRequestHeader("Accept", "application/json, text/javascript, */*");
-            service.send(null);
-            var requestResults = JSON.parse(service.responseText).d;
-            var results = requestResults.results[0].teammembership_association.results;
-            return results.map(function (t) {
-              return { name: t.Name, id: t.TeamId, entityType: "team" };
+            return CrmPowerPane.Utils.fetchLegacyJson(query).then(function (responseData) {
+              var requestResults = responseData && responseData.d ? responseData.d : { results: [] };
+              var first = requestResults.results && requestResults.results.length ? requestResults.results[0] : null;
+              var results =
+                first && first.teammembership_association && first.teammembership_association.results
+                  ? first.teammembership_association.results
+                  : [];
+              return results.map(function (t) {
+                return { name: t.Name, id: t.TeamId, entityType: "team" };
+              });
             });
           }
 
+          var userName = Xrm.Page.context.getUserName();
+          var userId = Xrm.Page.context.getUserId();
+          var userDetails = await Promise.all([getUserRoles(), getUserTeams()]);
+          var userRoles = userDetails[0];
+          var userTeams = userDetails[1];
+
           CrmPowerPane.UI.BuildOutputPopup("User Info", "Current user information", [
-            { label: "User name", value: Xrm.Page.context.getUserName() },
-            { label: "User id", value: Xrm.Page.context.getUserId() },
-            { label: "User Roles", value: getUserRoles() },
-            { label: "User Teams", value: getUserTeams() },
+            { label: "User name", value: userName },
+            { label: "User id", value: userId },
+            { label: "User Roles", value: userRoles },
+            { label: "User Teams", value: userTeams },
           ]);
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred while getting the user information.", "error");
@@ -805,7 +1058,7 @@ $(function () {
                 CrmPowerPane.Utils.copyToClipboard(attributeLogicalName).then(function (ok) {
                   if (ok) {
                     CrmPowerPane.UI.ShowNotification(
-                      "Copied <b>\"" + attributeLogicalName + "\"</b> to clipboard.",
+                      'Copied "' + attributeLogicalName + '" to clipboard.',
                       "success"
                     );
                   } else {
@@ -854,7 +1107,7 @@ $(function () {
           });
 
           if (overallStatus === "changed") {
-            CrmPowerPane.UI.ShowNotification("Added option values to all option labels (like <b>#value#</b>).");
+            CrmPowerPane.UI.ShowNotification("Added option values to all option labels (like #value#).");
           } else if (overallStatus === "reverted") {
             CrmPowerPane.UI.ShowNotification("Removed option values from all option labels.");
           }
@@ -1453,23 +1706,7 @@ $(function () {
         var $resultArea = $("#crm-power-pane-fetchxml-result-area");
         $resultArea.val("").css("color", "#000000");
 
-        var request = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>';
-        request +=
-          '<Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">' +
-          '<request i:type="b:RetrieveMultipleRequest" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">' +
-          '<b:Parameters xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">' +
-          "<b:KeyValuePairOfstringanyType>" +
-          "<c:key>Query</c:key>" +
-          '<c:value i:type="b:FetchExpression"><b:Query>';
-
-        request += CrmEncodeDecode.CrmXmlEncode(xml);
-
-        request +=
-          "</b:Query></c:value></b:KeyValuePairOfstringanyType></b:Parameters>" +
-          '<b:RequestId i:nil="true"/>' +
-          "<b:RequestName>RetrieveMultiple</b:RequestName>" +
-          "</request>" +
-          "</Execute></s:Body></s:Envelope>";
+        var request = CrmPowerPane.Utils.BuildRetrieveMultipleSoapRequest(xml);
 
         $.ajax({
           type: "POST",

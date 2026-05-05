@@ -38,6 +38,21 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
 /* Root */
 #crm-power-pane {
+    --crm-power-pane-bg: #111214;
+    --crm-power-pane-surface: #111214;
+    --crm-power-pane-surface-hover: #2a2b2f;
+    --crm-power-pane-elevated: #2a2b2f;
+    --crm-power-pane-text-primary: #DF8E64;
+    --crm-power-pane-text-secondary: #DAC157;
+    --crm-power-pane-border: #2f2f33;
+    --crm-power-pane-primary: #C8D1FA;
+    --crm-power-pane-primary-hover: #83BDEB;
+    --crm-power-pane-accent-secondary: #9BD9DB;
+    --crm-power-pane-accent-highlight: #F7ADDA;
+    --crm-power-pane-success: #A7E3A5;
+    --crm-power-pane-warning: #DAC157;
+    --crm-power-pane-error: #DF8E64;
+    --crm-power-pane-info: #9BD9DB;
     font-family: "Segoe UI", Tahoma, Arial, sans-serif;
     font-size: 13px;
     box-sizing: border-box;
@@ -50,14 +65,158 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     clear: both;
 }
 
+#crm-power-pane.crm-power-pane-theme-velvet-void.crm-power-pane-mode-light {
+    --crm-power-pane-bg: #FFF0FA;
+    --crm-power-pane-surface: #F8E4F4;
+    --crm-power-pane-surface-hover: #F0D8EE;
+    --crm-power-pane-elevated: #F0D8EE;
+    --crm-power-pane-text-primary: #160422;
+    --crm-power-pane-text-secondary: #8C3A7A;
+    --crm-power-pane-border: #E0C8DA;
+    --crm-power-pane-primary: #CC0088;
+    --crm-power-pane-primary-hover: #CC2299;
+    --crm-power-pane-accent-secondary: #CC2299;
+    --crm-power-pane-accent-highlight: #FFB0E8;
+    --crm-power-pane-success: #149950;
+    --crm-power-pane-warning: #AA8800;
+    --crm-power-pane-error: #CC1133;
+    --crm-power-pane-info: #6633BB;
+}
+
+#crm-power-pane.crm-power-pane-theme-velvet-void.crm-power-pane-mode-dark {
+    --crm-power-pane-bg: #08030C;
+    --crm-power-pane-surface: #110818;
+    --crm-power-pane-surface-hover: #1C0E28;
+    --crm-power-pane-elevated: #1C0E28;
+    --crm-power-pane-text-primary: #FFE8F8;
+    --crm-power-pane-text-secondary: #7A3A6A;
+    --crm-power-pane-border: #2C1040;
+    --crm-power-pane-primary: #FF00AA;
+    --crm-power-pane-primary-hover: #FF44CC;
+    --crm-power-pane-accent-secondary: #FF44CC;
+    --crm-power-pane-accent-highlight: #FFB8EE;
+    --crm-power-pane-success: #22DD88;
+    --crm-power-pane-warning: #FFCC00;
+    --crm-power-pane-error: #FF3355;
+    --crm-power-pane-info: #AA66FF;
+}
+
+#crm-power-pane.crm-power-pane-theme-dark-matter.crm-power-pane-mode-light {
+    --crm-power-pane-bg: #F8F4FF;
+    --crm-power-pane-surface: #EEE8FC;
+    --crm-power-pane-surface-hover: #E4D4FC;
+    --crm-power-pane-elevated: #E4D4FC;
+    --crm-power-pane-text-primary: #080418;
+    --crm-power-pane-text-secondary: #5533AA;
+    --crm-power-pane-border: #D4C8EE;
+    --crm-power-pane-primary: #9900CC;
+    --crm-power-pane-primary-hover: #BB44CC;
+    --crm-power-pane-accent-secondary: #BB44CC;
+    --crm-power-pane-accent-highlight: #0C0820;
+    --crm-power-pane-success: #0E9966;
+    --crm-power-pane-warning: #AA8800;
+    --crm-power-pane-error: #CC1144;
+    --crm-power-pane-info: #1A88BB;
+}
+
+#crm-power-pane.crm-power-pane-theme-dark-matter.crm-power-pane-mode-dark {
+    --crm-power-pane-bg: #060410;
+    --crm-power-pane-surface: #0E0820;
+    --crm-power-pane-surface-hover: #160C30;
+    --crm-power-pane-elevated: #160C30;
+    --crm-power-pane-text-primary: #F4EEFF;
+    --crm-power-pane-text-secondary: #6644AA;
+    --crm-power-pane-border: #201048;
+    --crm-power-pane-primary: #CC00FF;
+    --crm-power-pane-primary-hover: #EE66FF;
+    --crm-power-pane-accent-secondary: #EE66FF;
+    --crm-power-pane-accent-highlight: #FAF0FF;
+    --crm-power-pane-success: #00EE88;
+    --crm-power-pane-warning: #FFAA00;
+    --crm-power-pane-error: #FF2255;
+    --crm-power-pane-info: #44CCFF;
+}
+
+#crm-power-pane.crm-power-pane-theme-plasma-ice.crm-power-pane-mode-light {
+    --crm-power-pane-bg: #F2F8FC;
+    --crm-power-pane-surface: #E2EFF8;
+    --crm-power-pane-surface-hover: #FDF4E8;
+    --crm-power-pane-elevated: #FDF4E8;
+    --crm-power-pane-text-primary: #0A2030;
+    --crm-power-pane-text-secondary: #4A7080;
+    --crm-power-pane-border: #C4D4E0;
+    --crm-power-pane-primary: #007A88;
+    --crm-power-pane-primary-hover: #C87800;
+    --crm-power-pane-accent-secondary: #C87800;
+    --crm-power-pane-accent-highlight: #D8F4FA;
+    --crm-power-pane-success: #0E9048;
+    --crm-power-pane-warning: #C07800;
+    --crm-power-pane-error: #CC2030;
+    --crm-power-pane-info: #0080AA;
+}
+
+#crm-power-pane.crm-power-pane-theme-plasma-ice.crm-power-pane-mode-dark {
+    --crm-power-pane-bg: #04080E;
+    --crm-power-pane-surface: #100C08;
+    --crm-power-pane-surface-hover: #0C1620;
+    --crm-power-pane-elevated: #0C1620;
+    --crm-power-pane-text-primary: #E8F8FF;
+    --crm-power-pane-text-secondary: #507888;
+    --crm-power-pane-border: #182430;
+    --crm-power-pane-primary: #00EEFF;
+    --crm-power-pane-primary-hover: #FFAA00;
+    --crm-power-pane-accent-secondary: #FFAA00;
+    --crm-power-pane-accent-highlight: #F0FAFF;
+    --crm-power-pane-success: #00E870;
+    --crm-power-pane-warning: #FFC400;
+    --crm-power-pane-error: #FF3A50;
+    --crm-power-pane-info: #00BBFF;
+}
+
+#crm-power-pane.crm-power-pane-theme-aurora-rift.crm-power-pane-mode-light {
+    --crm-power-pane-bg: #F0FEF8;
+    --crm-power-pane-surface: #E8E6FC;
+    --crm-power-pane-surface-hover: #FEF6EA;
+    --crm-power-pane-elevated: #FEF6EA;
+    --crm-power-pane-text-primary: #040E08;
+    --crm-power-pane-text-secondary: #287060;
+    --crm-power-pane-border: #BCD8CC;
+    --crm-power-pane-primary: #009944;
+    --crm-power-pane-primary-hover: #AA0066;
+    --crm-power-pane-accent-secondary: #AA0066;
+    --crm-power-pane-accent-highlight: #DAFFF2;
+    --crm-power-pane-success: #009944;
+    --crm-power-pane-warning: #AA8800;
+    --crm-power-pane-error: #CC1133;
+    --crm-power-pane-info: #0088BB;
+}
+
+#crm-power-pane.crm-power-pane-theme-aurora-rift.crm-power-pane-mode-dark {
+    --crm-power-pane-bg: #030C0A;
+    --crm-power-pane-surface: #0A0818;
+    --crm-power-pane-surface-hover: #14100A;
+    --crm-power-pane-elevated: #14100A;
+    --crm-power-pane-text-primary: #E0FFF4;
+    --crm-power-pane-text-secondary: #3A7868;
+    --crm-power-pane-border: #1A1E28;
+    --crm-power-pane-primary: #00FF88;
+    --crm-power-pane-primary-hover: #FF0080;
+    --crm-power-pane-accent-secondary: #FF0080;
+    --crm-power-pane-accent-highlight: #E8FFF8;
+    --crm-power-pane-success: #00EE66;
+    --crm-power-pane-warning: #FFCC00;
+    --crm-power-pane-error: #FF2244;
+    --crm-power-pane-info: #00CCFF;
+}
+
 /* Sections container */
 .crm-power-pane-sections {
     position: absolute;
     top: 50px;
     display: none;
     width: 100%;
-    background: $surface;
-    color: $text-primary;
+    background: var(--crm-power-pane-surface, $surface);
+    color: var(--crm-power-pane-text-primary, $text-primary);
     padding: 10px 0;
     font-size: 14px;
     box-shadow: $shadow-4;
@@ -81,7 +240,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     float: left;
     padding: 0 24px;
     flex: 0 0 auto;
-    color: $accent-pumpkin;
+    color: var(--crm-power-pane-text-primary, $accent-pumpkin);
 }
 
 .crm-power-pane-header {
@@ -91,7 +250,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     font-weight: 600;
     font-size: 18px;
     padding: 13px 0 10px 4px;
-    color: $accent-pink;
+    color: var(--crm-power-pane-accent-highlight, $accent-pink);
     height: 30px;
 }
 
@@ -99,7 +258,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     height: 40px;
     margin-left: 10px;
     cursor: pointer !important;
-    color: $accent-green;
+    color: var(--crm-power-pane-success, $accent-green);
 
     span {
         display: inline-block;
@@ -108,12 +267,12 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     }
 
     span:not(.icon):hover {
-        background-color: $surface-hover !important;
+        background-color: var(--crm-power-pane-surface-hover, $surface-hover) !important;
         cursor: pointer;
     }
 
     span.icon {
-        background-color: $dark-bg;
+        background-color: var(--crm-power-pane-bg, $dark-bg);
         background-position: center;
         background-repeat: no-repeat;
         background-size: 20px !important;
@@ -280,8 +439,8 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     left: 50%;
     transform: translate(-50%, -50%);
     width: 320px;
-    background: $surface;
-    border: 1px solid $border-color;
+    background: var(--crm-power-pane-surface, $surface);
+    border: 1px solid var(--crm-power-pane-border, $border-color);
     border-radius: 6px;
     box-shadow: $shadow-4;
     z-index: 9999;
@@ -292,8 +451,8 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     display: none;
     width: 750px;
     height: auto;
-    background: $surface;
-    border: 1px solid $border-color;
+    background: var(--crm-power-pane-surface, $surface);
+    border: 1px solid var(--crm-power-pane-border, $border-color);
     box-shadow: $shadow-4;
     position: absolute;
     left: 32%;
@@ -306,7 +465,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 .crm-power-pane-popup-header {
     font-size: 27px;
     font-weight: lighter;
-    color: $text-primary;
+    color: var(--crm-power-pane-text-primary, $text-primary);
     margin: 0 0 8px 0;
     max-width: 400px;
     padding: 5px 0 18px 0;
@@ -314,16 +473,16 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
 .crm-power-pane-popup-description {
     margin: 0 0 12px 0;
-    color: $text-secondary;
+    color: var(--crm-power-pane-text-secondary, $text-secondary);
     padding-bottom: 10px;
 }
 
 .crm-power-pane-button {
     padding: 6px 12px;
-    border: 1px solid $accent-lilac;
+    border: 1px solid var(--crm-power-pane-primary, $accent-lilac);
     border-radius: 4px;
-    background: $dark-bg;
-    color: $text-primary;
+    background: var(--crm-power-pane-bg, $dark-bg);
+    color: var(--crm-power-pane-text-primary, $text-primary);
     cursor: pointer;
     font-family: "Segoe UI", Tahoma, Arial;
     font-size: 11px;
@@ -331,13 +490,13 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     min-width: 70px;
 
     &:hover {
-        background-color: $surface-hover;
+        background-color: var(--crm-power-pane-surface-hover, $surface-hover);
     }
 
     &.primary {
-        background: $primary-color;
-        color: $dark-bg;
-        border-color: $accent-lilac;
+        background: var(--crm-power-pane-primary, $primary-color);
+        color: var(--crm-power-pane-bg, $dark-bg);
+        border-color: var(--crm-power-pane-primary-hover, $accent-lilac);
     }
 }
 
@@ -549,7 +708,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
 #crm-power-pane-note {
-    color: $text-secondary;
+    color: var(--crm-power-pane-text-secondary, $text-secondary);
     clear: both;
 }
 
@@ -562,7 +721,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     float: right;
     clear: both;
     font-size: 11px;
-    color: $accent-lime;
+    color: var(--crm-power-pane-success, $accent-lime);
 
     span {
         background: url('#{$browserPrefix}/img/github.png');
@@ -577,6 +736,135 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     }
 }
 
+#crm-power-pane-theme-trigger {
+    position: absolute;
+    left: 12px;
+    bottom: 8px;
+    z-index: 2;
+    color: var(--crm-power-pane-primary, $primary-color);
+    font-size: 11px;
+    text-decoration: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+
+    &:hover,
+    &:focus {
+        background: var(--crm-power-pane-surface-hover, $surface-hover);
+        color: var(--crm-power-pane-text-primary, $text-primary);
+        outline: none;
+    }
+}
+
+#crm-power-pane-theme-modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 10000;
+}
+
+#crm-power-pane-theme-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max-content;
+    min-width: 220px;
+    max-width: calc(100vw - 32px);
+    background: var(--crm-power-pane-surface, $surface);
+    color: var(--crm-power-pane-text-primary, $text-primary);
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 6px;
+    box-shadow: $shadow-4;
+    padding: 12px;
+    z-index: 10001;
+}
+
+.crm-power-pane-theme-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+
+    h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--crm-power-pane-accent-highlight, $accent-pink);
+    }
+}
+
+.crm-power-pane-theme-close,
+.crm-power-pane-theme-mode {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 4px;
+    background: var(--crm-power-pane-bg, $dark-bg);
+    color: var(--crm-power-pane-text-primary, $text-primary);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+
+    &:hover,
+    &:focus {
+        border-color: var(--crm-power-pane-primary, $primary-color);
+        outline: none;
+    }
+}
+
+#crm-power-pane-theme-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.crm-power-pane-theme-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 34px;
+    padding: 4px;
+    border-radius: 4px;
+
+    &.selected {
+        background: var(--crm-power-pane-surface-hover, $surface-hover);
+    }
+}
+
+.crm-power-pane-theme-name {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font-family: "Segoe UI", Tahoma, Arial;
+    font-size: 13px;
+    text-align: left;
+    padding: 4px 6px;
+
+    &:focus {
+        outline: 1px solid var(--crm-power-pane-primary, $primary-color);
+        outline-offset: 2px;
+    }
+}
+
+.crm-power-pane-theme-mode-group {
+    display: flex;
+    gap: 4px;
+}
+
+.crm-power-pane-theme-mode.selected {
+    background: var(--crm-power-pane-primary, $primary-color);
+    color: var(--crm-power-pane-bg, $dark-bg);
+    border-color: var(--crm-power-pane-primary-hover, $primary-hover);
+}
+
 .dynamics-crm-power-pane-table-filter {
     margin-bottom: 12px;
     clear: both;
@@ -585,7 +873,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 .crm-power-pane-popup-input-text {
     margin-top: 5px;
     margin-bottom: 8px;
-    color: $text-primary;
+    color: var(--crm-power-pane-text-primary, $text-primary);
 }
 
 /* Accessibility */

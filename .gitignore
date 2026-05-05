@@ -1,4 +1,6 @@
 .worktrees/
+/dist/
+/node_modules/
 /docs/superpowers/plans
 /.vs
 /docs/reviews

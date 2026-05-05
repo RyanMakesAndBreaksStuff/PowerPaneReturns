@@ -111,13 +111,16 @@ const build = (target, version) => {
 
     // Browser-specific adjustments
     if (target === "firefox") {
-        // Firefox-specific adjustments for compatibility
-        manifest.permissions.push("webRequest");
+        const gecko = {
+            strict_min_version: "109.0"
+        };
+
+        if (process.env.FIREFOX_EXTENSION_ID) {
+            gecko.id = process.env.FIREFOX_EXTENSION_ID;
+        }
+
         manifest.browser_specific_settings = {
-            gecko: {
-                id: "{your-addon-id}",
-                strict_min_version: "91.0"
-            }
+            gecko
         };
     }
 
