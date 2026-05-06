@@ -111,17 +111,16 @@ const build = (target, version) => {
 
     // Browser-specific adjustments
     if (target === "firefox") {
+        const firefoxExtensionId = process.env.FIREFOX_EXTENSION_ID;
         const gecko = {
             strict_min_version: "109.0"
         };
 
-        if (process.env.FIREFOX_EXTENSION_ID) {
-            gecko.id = process.env.FIREFOX_EXTENSION_ID;
+        if (firefoxExtensionId) {
+            gecko.id = firefoxExtensionId;
         }
 
-        manifest.browser_specific_settings = {
-            gecko
-        };
+        manifest.browser_specific_settings = { gecko };
     }
 
   const broadWildcardHosts = ["http://*/*", "https://*/*", "*://*/*"];
