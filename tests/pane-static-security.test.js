@@ -53,3 +53,32 @@ test("theme selector config lists unique display names and safe DOM rendering", 
   assert.match(paneSource, /\.text\(theme\.name\)/);
   assert.doesNotMatch(paneSource, /crm-power-pane-theme-list[\s\S]{0,300}\.html\(/);
 });
+
+test("theme action labels use dedicated per-theme colors instead of status success", () => {
+  assert.match(paneScss, /\.crm-power-pane-subgroup[\s\S]*color:\s*var\(--crm-power-pane-label/);
+  assert.doesNotMatch(paneScss, /\.crm-power-pane-subgroup[\s\S]{0,120}color:\s*var\(--crm-power-pane-success/);
+
+  [
+    "velvet-void.crm-power-pane-mode-light",
+    "velvet-void.crm-power-pane-mode-dark",
+    "dark-matter.crm-power-pane-mode-light",
+    "dark-matter.crm-power-pane-mode-dark",
+    "plasma-ice.crm-power-pane-mode-light",
+    "plasma-ice.crm-power-pane-mode-dark",
+    "aurora-rift.crm-power-pane-mode-light",
+    "aurora-rift.crm-power-pane-mode-dark",
+  ].forEach((themeClass) => {
+    var blockPattern = new RegExp(
+      "#crm-power-pane\\.crm-power-pane-theme-" +
+        themeClass.replace(/\./g, "\\.") +
+        "\\s*\\{([\\s\\S]*?)\\n\\}"
+    );
+    var block = paneScss.match(blockPattern);
+    assert.ok(block, "Missing theme block for " + themeClass);
+    var label = block[1].match(/--crm-power-pane-label:\s*(#[0-9A-Fa-f]{6});/);
+    var success = block[1].match(/--crm-power-pane-success:\s*(#[0-9A-Fa-f]{6});/);
+    assert.ok(label, "Missing label token for " + themeClass);
+    assert.ok(success, "Missing success token for " + themeClass);
+    assert.notEqual(label[1].toLowerCase(), success[1].toLowerCase(), themeClass);
+  });
+});
