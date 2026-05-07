@@ -6,6 +6,56 @@ const assert = require("node:assert/strict");
 const paneSource = fs.readFileSync(path.join(__dirname, "..", "src/js/ui/pane.js"), "utf8");
 const paneHtml = fs.readFileSync(path.join(__dirname, "..", "src/html/ui/pane.html"), "utf8");
 const paneScss = fs.readFileSync(path.join(__dirname, "..", "src/sass/ui/pane.scss"), "utf8");
+const activePaneHtml = paneHtml.replace(/<!--[\s\S]*?-->/g, "");
+
+const currentCommandIds = [
+  "user-info",
+  "fetch-xml",
+  "advanced_find",
+  "entity-name",
+  "record-id",
+  "record-url",
+  "clone-record",
+  "record-properties",
+  "enable-all-fields",
+  "show-all-fields",
+  "disable-field-requirement",
+  "schema-names",
+  "schema-names-as-desc",
+  "schema-names-in-brackets",
+  "show-optionset-values",
+  "clear-all-fields",
+  "fill-all-fields",
+  "required-fields",
+  "show-field-value",
+  "find-field-in-form",
+  "show-dirty-fields",
+  "clear-all-notifications",
+  "refresh-ribbon",
+  "refresh-form",
+  "toggle-lookup-links",
+  "go-to-record",
+  "go-to-create-form",
+  "open-legacy-editor",
+  "open-new-editor",
+  "open-entity-editor",
+  "solutions",
+  "crm-diagnostics",
+  "performance-center",
+  "open-webapi",
+];
+
+function countAttributeValue(source, attributeName, value) {
+  var escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var pattern = new RegExp(attributeName + '="' + escapedValue + '"', "g");
+  return (source.match(pattern) || []).length;
+}
+
+function extractOpenTagById(source, id) {
+  var pattern = new RegExp("<[^>]+\\bid=\"" + id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\"[^>]*>");
+  var match = source.match(pattern);
+  return match ? match[0] : "";
+}
 
 test("pane notifications avoid html message writes", () => {
   assert.doesNotMatch(paneSource, /\$notification\.find\("span"\)\.html\(\s*message\s*\)/);
@@ -42,6 +92,29 @@ test("theme selector markup exists once with an autosized modal shell", () => {
   assert.match(paneScss, /#crm-power-pane-theme-modal[\s\S]*width:\s*max-content/);
 });
 
+test("theme trigger uses the dock component while preserving dialog accessibility", () => {
+  var triggerTag = extractOpenTagById(activePaneHtml, "crm-power-pane-theme-trigger");
+
+  assert.ok(triggerTag, "Missing crm-power-pane-theme-trigger element");
+  assert.match(triggerTag, /\bclass="[^"]*\btheme-dock\b[^"]*"/);
+  assert.match(triggerTag, /\brole="button"/);
+  assert.match(triggerTag, /\baria-haspopup="dialog"/);
+  assert.match(triggerTag, /\baria-controls="crm-power-pane-theme-modal"/);
+});
+
+test("current command ids are present exactly once in pane markup", () => {
+  var commandIdPattern = /<li\b[^>]*\bclass="[^"]*\bcrm-power-pane-subgroup\b[^"]*"[^>]*\bid="([^"]+)"/g;
+  var actualCommandIds = Array.from(activePaneHtml.matchAll(commandIdPattern), function (match) {
+    return match[1];
+  });
+
+  assert.deepEqual(actualCommandIds, currentCommandIds);
+
+  currentCommandIds.forEach(function (commandId) {
+    assert.equal(countAttributeValue(activePaneHtml, "id", commandId), 1, commandId + " should be unique");
+  });
+});
+
 test("theme selector config lists unique display names and safe DOM rendering", () => {
   assert.match(paneSource, /ThemeSelector:\s*\{/);
   assert.match(paneSource, /name:\s*"Default"/);
@@ -52,6 +125,54 @@ test("theme selector config lists unique display names and safe DOM rendering", 
   assert.match(paneSource, /localStorage\.setItem\("crm-power-pane-theme"/);
   assert.match(paneSource, /\.text\(theme\.name\)/);
   assert.doesNotMatch(paneSource, /crm-power-pane-theme-list[\s\S]{0,300}\.html\(/);
+});
+
+test("theme rendering never writes html into or near the theme list", () => {
+  var themeListReferences = Array.from(paneSource.matchAll(/crm-power-pane-theme-list/g), function (match) {
+    var start = Math.max(0, match.index - 350);
+    var end = Math.min(paneSource.length, match.index + 350);
+    return paneSource.slice(start, end);
+  });
+
+  assert.ok(themeListReferences.length > 0, "Expected theme list rendering references");
+  themeListReferences.forEach(function (reference) {
+    assert.doesNotMatch(reference, /\.html\s*\(/);
+  });
+});
+
+test("theme config exposes palette metadata for dock chips and preview swatches", () => {
+  var themeObjectPattern = /\{\s*id:\s*"[^"]+",\s*name:\s*"[^"]+",\s*modes:\s*\[[^\]]+\][\s\S]*?\}/g;
+  var themeObjects = paneSource.match(themeObjectPattern) || [];
+
+  assert.ok(themeObjects.length >= 5, "Expected the current theme config objects");
+  themeObjects.forEach(function (themeConfig) {
+    assert.match(themeConfig, /\bpalette:\s*\{/);
+    assert.match(themeConfig, /\bdockChips:\s*\[/);
+    ["background", "label", "border", "status"].forEach(function (tokenName) {
+      assert.match(themeConfig, new RegExp("\\b" + tokenName + ":\\s*\"#[0-9A-Fa-f]{6}\""));
+    });
+  });
+});
+
+test("pane scss defines matrix, dock, preview card, responsive, and focus selectors", () => {
+  [
+    ".matrix-pane",
+    ".matrix-toolbar",
+    ".matrix-grid",
+    ".matrix-card",
+    ".theme-dock",
+    ".theme-chip",
+    ".theme-preview-panel",
+    ".compact-picker",
+    ".theme-card",
+    ".swatches",
+  ].forEach(function (selector) {
+    assert.match(paneScss, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b"));
+  });
+
+  assert.match(paneScss, /@media\s*\([^)]*max-width[^)]*\)[\s\S]*\.matrix-grid/);
+  assert.match(paneScss, /\.theme-dock[\s\S]{0,500}&:focus/);
+  assert.match(paneScss, /\.theme-card[\s\S]{0,500}&:focus/);
 });
 
 test("theme action labels use dedicated per-theme colors instead of status success", () => {

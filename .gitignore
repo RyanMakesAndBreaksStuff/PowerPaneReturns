@@ -8,3 +8,12 @@
 /AGENTS.md
 /skills-lock.json
 /.gitignore
+/.cursorrules
+/install.sh
+/docs/mocks/theme-ui-alternatives.html
+/.claude/settings.local.json
+/.claude/settings.local.json.lean-ctx.bak
+/.claude/rules/lean-ctx.md
+/tasks/todo.md
+/LEAN-CTX.md
+/CLAUDE.md
