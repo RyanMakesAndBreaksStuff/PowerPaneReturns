@@ -1,8 +1,73 @@
 ﻿<div id="crm-power-pane">
-   <div class="crm-power-pane-sections matrix-pane" tabindex="9999">
-        <div class="matrix-toolbar">
+   <div class="crm-power-pane-sections command-bar-pane crm-power-pane-layout-nobar" tabindex="9999">
+        <div class="command-bar-layout">
+            <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-general" checked>
+            <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-record">
+            <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-form">
+            <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-navigation">
+            <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-utilities">
+            <nav class="command-bar-rail" aria-label="Power Pane command groups">
+                <label class="command-bar-rail-button" for="crm-power-pane-view-general">GN</label>
+                <label class="command-bar-rail-button" for="crm-power-pane-view-record">RC</label>
+                <label class="command-bar-rail-button" for="crm-power-pane-view-form">FA</label>
+                <label class="command-bar-rail-button" for="crm-power-pane-view-navigation">NV</label>
+                <label class="command-bar-rail-button" for="crm-power-pane-view-utilities">UT</label>
+            </nav>
+            <div class="crm-power-pane-scrolling-container command-bar-groups">
+                <ul class="crm-power-pane-section command-bar-group rail-command-group rail-command-general" id="user-actions">
+                    <li class="crm-power-pane-header">General</li>
+                    <li class="crm-power-pane-subgroup" id="user-info"><span><span class="icon user-info-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">User Info</span><span class="crm-power-pane-command-description">Show current user id, name, and roles.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="fetch-xml"><span><span class="icon fetch-xml-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Execute Fetch Xml</span><span class="crm-power-pane-command-description">Run a FetchXML query against this org.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="advanced_find"><span><span class="icon advanced-find-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Open Advanced Find</span><span class="crm-power-pane-command-description">Open the classic query builder.</span></span></span></li>
+                </ul>
+                <ul class="crm-power-pane-section command-bar-group rail-command-group rail-command-record" id="record-actions">
+                    <li class="crm-power-pane-header">Record</li>
+                    <li class="crm-power-pane-subgroup" id="entity-name"><span><span class="icon entity-name-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Entity Info</span><span class="crm-power-pane-command-description">Show table logical and display names.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="record-id"><span><span class="icon record-id-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Record Id</span><span class="crm-power-pane-command-description">Copy the current row identifier.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="record-url"><span><span class="icon record-url-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Record Url</span><span class="crm-power-pane-command-description">Copy a direct link to this record.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="clone-record"><span><span class="icon clone-record-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Clone Record</span><span class="crm-power-pane-command-description">Open a create form with copied values.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="record-properties"><span><span class="icon record-properties-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Record Properties</span><span class="crm-power-pane-command-description">Inspect current record metadata.</span></span></span></li>
+                </ul>
+                <ul class="crm-power-pane-section command-bar-group command-bar-group-wide rail-command-group rail-command-form" id="form-actions">
+                    <li class="crm-power-pane-header">Form Actions</li>
+                    <li class="crm-power-pane-subgroup" id="enable-all-fields"><span><span class="icon enable-all-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Enable All Fields</span><span class="crm-power-pane-command-description">Unlock disabled inputs on the form.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="show-all-fields"><span><span class="icon show-all-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Show Hidden Fields</span><span class="crm-power-pane-command-description">Reveal hidden controls for inspection.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="disable-field-requirement"><span><span class="icon disable-field-requirement-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Disable Field Requirement</span><span class="crm-power-pane-command-description">Make required fields optional locally.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="schema-names"><span><span class="icon schema-names-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Schema Names as Label</span><span class="crm-power-pane-command-description">Replace labels with schema names.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="schema-names-as-desc"><span><span class="icon schema-names-as-desc-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Schema Name Copy Mode</span><span class="crm-power-pane-command-description">Click labels to copy schema names.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="schema-names-in-brackets"><span><span class="icon schema-names-in-brackets-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Schema Names In Brackets</span><span class="crm-power-pane-command-description">Append schema names beside labels.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="show-optionset-values"><span><span class="icon show-optionset-values-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Show Optionset Values</span><span class="crm-power-pane-command-description">Display choice values with labels.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="clear-all-fields"><span><span class="icon clear-all-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Clear All Fields</span><span class="crm-power-pane-command-description">Clear editable values on the form.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="fill-all-fields"><span><span class="icon fill-all-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Fill All Fields</span><span class="crm-power-pane-command-description">Populate editable fields with test data.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="required-fields"><span><span class="icon required-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Fill Only Required Fields</span><span class="crm-power-pane-command-description">Populate required fields with test data.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon show-field-value-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Show Field Value</span><span class="crm-power-pane-command-description">Show the selected field's raw value.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="find-field-in-form"><span><span class="icon find-field-in-form-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Find Field In Form</span><span class="crm-power-pane-command-description">Locate a field by schema name.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="show-dirty-fields"><span><span class="icon show-dirty-fields-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Highlight Dirty Fields</span><span class="crm-power-pane-command-description">Mark fields with unsaved changes.</span></span></span></li>
+                </ul>
+                <ul class="crm-power-pane-section command-bar-group command-bar-group-wide rail-command-group rail-command-navigation" id="navigation-actions">
+                    <li class="crm-power-pane-header">Navigation</li>
+                    <li class="crm-power-pane-subgroup" id="go-to-record"><span><span class="icon go-to-record-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Go to Record by Id</span><span class="crm-power-pane-command-description">Open any row by table and id.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="go-to-create-form"><span><span class="icon go-to-create-form-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Go to Create Form</span><span class="crm-power-pane-command-description">Open a create form for a table.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="open-legacy-editor"><span><span class="icon form-editor-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Legacy Form Editor</span><span class="crm-power-pane-command-description">Open the classic form designer.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="open-new-editor"><span><span class="icon form-editor-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Maker Portal Form Editor</span><span class="crm-power-pane-command-description">Open this form in Maker Portal.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="open-entity-editor"><span><span class="icon entity-editor-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Entity Editor</span><span class="crm-power-pane-command-description">Open table customization tools.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="solutions"><span><span class="icon solutions-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Solutions</span><span class="crm-power-pane-command-description">List loaded solution metadata.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="open-webapi"><span><span class="icon record-url-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Open Web API Record</span><span class="crm-power-pane-command-description">Open the row through Web API.</span></span></span></li>
+                </ul>
+                <ul class="crm-power-pane-section command-bar-group rail-command-group rail-command-utilities" id="utility-actions">
+                    <li class="crm-power-pane-header">Utilities/Other</li>
+                    <li class="crm-power-pane-subgroup" id="clear-all-notifications"><span><span class="icon clear-all-notifications-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Clear All Notifications</span><span class="crm-power-pane-command-description">Dismiss all visible form notifications.</span></span></span></li>
+                    <!--<li class="crm-power-pane-subgroup" id="show-auto-fill"><span><span class="icon auto-fill"></span>Form Auto Fill</span></li>-->
+                    <li class="crm-power-pane-subgroup" id="refresh-ribbon"><span><span class="icon refresh-ribbon-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Refresh Ribbon</span><span class="crm-power-pane-command-description">Reload command bar rules and buttons.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="refresh-form"><span><span class="icon refresh-form-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Refresh Form</span><span class="crm-power-pane-command-description">Reload current form data and controls.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="toggle-lookup-links"><span><span class="icon toggle-lookup-links-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Toggle Lookup Links</span><span class="crm-power-pane-command-description">Show or hide clickable lookup links.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="crm-diagnostics"><span><span class="icon crm-diagnostics-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Crm Diagnostics</span><span class="crm-power-pane-command-description">Open platform diagnostics tools.</span></span></span></li>
+                    <li class="crm-power-pane-subgroup" id="performance-center"><span><span class="icon performance-center-icon"></span><span class="crm-power-pane-command-copy"><span class="crm-power-pane-command-label">Performance Center</span><span class="crm-power-pane-command-description">Open model-driven app timing tools.</span></span></span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="crm-power-pane-pane-controls" aria-label="Power Pane display controls">
             <a id="crm-power-pane-theme-trigger" class="theme-dock matrix-dock" href="#" role="button" aria-haspopup="dialog" aria-controls="crm-power-pane-theme-modal" aria-expanded="false">
-                <strong>Theme</strong>
                 <span class="theme-dock-label crm-power-pane-theme-dock-name">Default</span>
                 <span class="crm-power-pane-theme-dock-chips" aria-hidden="true">
                     <span class="theme-chip"></span>
@@ -10,58 +75,11 @@
                     <span class="theme-chip"></span>
                 </span>
             </a>
-        </div>
-        <div class="matrix-grid">
-            <ul class="crm-power-pane-section matrix-card" id="user-actions">
-                    <li class="crm-power-pane-header">General</li>
-                    <li class="crm-power-pane-subgroup" id="user-info"><span><span class="icon user-info-icon"></span>User Info</span></li>
-                    <li class="crm-power-pane-subgroup" id="fetch-xml"><span><span class="icon fetch-xml-icon"></span>Execute Fetch Xml</span></li>
-                    <li class="crm-power-pane-subgroup" id="advanced_find"><span><span class="icon advanced-find-icon"></span>Open Advanced Find</span></li>
-            </ul>
-            <ul class="crm-power-pane-section matrix-card" id="record-actions">
-                <li class="crm-power-pane-header">Record</li>
-                <li class="crm-power-pane-subgroup" id="entity-name"><span><span class="icon entity-name-icon"></span>Entity Info</span></li>
-                <li class="crm-power-pane-subgroup" id="record-id"><span><span class="icon record-id-icon"></span>Record Id</span></li>
-                <li class="crm-power-pane-subgroup" id="record-url"><span><span class="icon record-url-icon"></span>Record Url</span></li>
-                <li class="crm-power-pane-subgroup" id="clone-record"><span><span class="icon clone-record-icon"></span>Clone Record</span></li>
-                <li class="crm-power-pane-subgroup" id="record-properties"><span><span class="icon record-properties-icon"></span>Record Properties</span></li>
-            </ul>
-            <ul class="crm-power-pane-section matrix-card tall" id="form-actions">
-                <li class="crm-power-pane-header">Form Actions</li>
-                <li class="crm-power-pane-subgroup" id="enable-all-fields"><span><span class="icon enable-all-fields-icon"></span>Enable All Fields</span></li>
-                <li class="crm-power-pane-subgroup" id="show-all-fields"><span><span class="icon show-all-fields-icon"></span>Show Hidden Fields</span></li>
-                <li class="crm-power-pane-subgroup" id="disable-field-requirement"><span><span class="icon disable-field-requirement-icon"></span>Disable Field Requirement</span></li>
-                <li class="crm-power-pane-subgroup" id="schema-names"><span><span class="icon schema-names-icon"></span>Schema Names as Label</span></li>
-                <li class="crm-power-pane-subgroup" id="schema-names-as-desc"><span><span class="icon schema-names-as-desc-icon"></span>Schema Name Copy Mode</span></li>
-                <li class="crm-power-pane-subgroup" id="schema-names-in-brackets"><span><span class="icon schema-names-in-brackets-icon"></span>Schema Names In Brackets</span></li>
-                <li class="crm-power-pane-subgroup" id="show-optionset-values"><span><span class="icon show-optionset-values-icon"></span>Show Optionset Values</span></li>
-                <li class="crm-power-pane-subgroup" id="clear-all-fields"><span><span class="icon clear-all-fields-icon"></span>Clear All Fields</span></li>
-                <li class="crm-power-pane-subgroup" id="fill-all-fields"><span><span class="icon fill-all-fields-icon"></span>Fill All Fields</span></li>
-                <li class="crm-power-pane-subgroup" id="required-fields"><span><span class="icon required-fields-icon"></span>Fill Only Required Fields</span></li>
-                <li class="crm-power-pane-subgroup" id="show-field-value"><span><span class="icon show-field-value-icon"></span>Show Field Value</span></li>
-                <li class="crm-power-pane-subgroup" id="find-field-in-form"><span><span class="icon find-field-in-form-icon"></span>Find Field In Form</span></li>
-                <li class="crm-power-pane-subgroup" id="show-dirty-fields"><span><span class="icon show-dirty-fields-icon"></span>Highlight Dirty Fields</span></li>
-            </ul>
-            <ul class="crm-power-pane-section matrix-card" id="navigation-actions">
-                <li class="crm-power-pane-header">Navigation</li>
-                <li class="crm-power-pane-subgroup" id="go-to-record"><span><span class="icon go-to-record-icon"></span>Go to Record by Id</span></li>
-                <li class="crm-power-pane-subgroup" id="go-to-create-form"><span><span class="icon go-to-create-form-icon"></span>Go to Create Form</span></li>
-                <li class="crm-power-pane-subgroup" id="open-legacy-editor"><span><span class="icon form-editor-icon"></span>Legacy Form Editor</span></li>
-                <li class="crm-power-pane-subgroup" id="open-new-editor"><span><span class="icon form-editor-icon"></span>Maker Portal Form Editor</span></li>
-                <li class="crm-power-pane-subgroup" id="open-entity-editor"><span><span class="icon entity-editor-icon"></span>Entity Editor</span></li>
-                <li class="crm-power-pane-subgroup" id="solutions"><span><span class="icon solutions-icon"></span>Solutions</span></li>
-                <li class="crm-power-pane-subgroup" id="open-webapi"><span><span class="icon record-url-icon"></span>Open Web API Record</span></li>
-            </ul>
-            <ul class="crm-power-pane-section matrix-card" id="utility-actions">
-                <li class="crm-power-pane-header">Utilities/Other</li>
-                <li class="crm-power-pane-subgroup" id="clear-all-notifications"><span><span class="icon clear-all-notifications-icon"></span>Clear All Notifications</span></li>
-                <!--<li class="crm-power-pane-subgroup" id="show-auto-fill"><span><span class="icon auto-fill"></span>Form Auto Fill</span></li>-->
-                <li class="crm-power-pane-subgroup" id="refresh-ribbon"><span><span class="icon refresh-ribbon-icon"></span>Refresh Ribbon</span></li>
-                <li class="crm-power-pane-subgroup" id="refresh-form"><span><span class="icon refresh-form-icon"></span>Refresh Form</span></li>
-                <li class="crm-power-pane-subgroup" id="toggle-lookup-links"><span><span class="icon toggle-lookup-links-icon"></span>Toggle Lookup Links</span></li>
-                <li class="crm-power-pane-subgroup" id="crm-diagnostics"><span><span class="icon crm-diagnostics-icon"></span>Crm Diagnostics</span></li>
-                <li class="crm-power-pane-subgroup" id="performance-center"><span><span class="icon performance-center-icon"></span>Performance Center</span></li>
-            </ul>
+            <div class="layout-dock" role="group" aria-label="Display mode">
+                <span class="layout-dock-label">Display</span>
+                <button type="button" class="layout-dock-option" data-layout-mode="nobar" aria-pressed="true">All</button>
+                <button type="button" class="layout-dock-option" data-layout-mode="rail" aria-pressed="false">Rail</button>
+            </div>
         </div>
         <div id="crm-power-pane-notes" style="clear:both">
             <a id="crm-power-pane-github" target="_blank" href="https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns/issues"> <span></span> Provide Feedback</a>

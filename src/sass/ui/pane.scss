@@ -377,6 +377,280 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     }
 }
 
+.command-bar-pane {
+    padding: 0;
+    background: var(--crm-power-pane-surface, $surface);
+}
+
+.command-bar-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+}
+
+.command-bar-rail {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px 9px;
+    border-right: 1px solid var(--crm-power-pane-border, $border-color);
+    background: var(--crm-power-pane-bg, $dark-bg);
+}
+
+.command-bar-rail-button {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 8px;
+    background: var(--crm-power-pane-surface, $surface);
+    color: var(--crm-power-pane-text-primary, $text-primary);
+    cursor: pointer;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        border-color: var(--crm-power-pane-primary, $primary-color);
+        background: var(--crm-power-pane-surface-hover, $surface-hover);
+        color: var(--crm-power-pane-label, $accent-green);
+        outline: 2px solid var(--crm-power-pane-primary, $primary-color);
+        outline-offset: 2px;
+    }
+
+    &.active {
+        border-color: var(--crm-power-pane-primary, $primary-color);
+        background: var(--crm-power-pane-elevated, $surface-hover);
+        color: var(--crm-power-pane-label, $accent-green);
+    }
+}
+
+.command-bar-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    align-items: start;
+    gap: 10px;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+    max-height: none;
+    padding: 14px;
+}
+
+.command-bar-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    align-content: start;
+    gap: 6px 8px;
+    min-width: 0;
+    max-width: none;
+    padding: 8px 10px 9px;
+    float: none;
+    flex: initial;
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 8px;
+    background: var(--crm-power-pane-bg, $dark-bg);
+
+    &.command-bar-group-wide {
+        grid-column: span 2;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .crm-power-pane-header {
+        grid-column: 1 / -1;
+        height: auto;
+        padding: 0 3px 4px;
+        color: var(--crm-power-pane-accent-highlight, $accent-pink);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .crm-power-pane-subgroup {
+        height: auto;
+        min-height: 48px;
+        margin-left: 0;
+        border-radius: 6px;
+
+        > span {
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr);
+            align-items: start;
+            gap: 7px;
+            min-height: 48px;
+            height: auto;
+            padding: 6px 8px;
+            border-radius: 6px;
+            color: inherit;
+            line-height: 1.2;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        span.icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0;
+            background-size: 17px !important;
+        }
+
+        .crm-power-pane-command-copy {
+            display: grid;
+            gap: 1px;
+            height: auto;
+            min-width: 0;
+            padding: 0;
+        }
+
+        .crm-power-pane-command-copy,
+        .crm-power-pane-command-label,
+        .crm-power-pane-command-description {
+            height: auto;
+            padding: 0;
+        }
+
+        .crm-power-pane-command-label {
+            color: var(--crm-power-pane-label, $accent-green);
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .crm-power-pane-command-description {
+            color: var(--crm-power-pane-text-primary, $text-primary);
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        &:hover > span,
+        &:focus > span,
+        > span:focus {
+            background-color: var(--crm-power-pane-surface-hover, $surface-hover) !important;
+            outline: 1px solid var(--crm-power-pane-primary, $primary-color);
+            outline-offset: 2px;
+        }
+    }
+}
+
+.rail-command-pane .command-bar-layout {
+    grid-template-columns: 66px minmax(0, 1fr);
+}
+
+.crm-power-pane-layout-nobar .command-bar-rail {
+    display: none;
+}
+
+.command-bar-control {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rail-command-pane .command-bar-groups {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 178px;
+}
+
+.rail-command-pane .command-bar-group.command-bar-group-wide {
+    grid-column: auto;
+}
+
+.rail-command-pane .rail-command-group {
+    display: none;
+}
+
+#crm-power-pane-view-general:checked ~ .command-bar-groups .rail-command-general,
+#crm-power-pane-view-record:checked ~ .command-bar-groups .rail-command-record,
+#crm-power-pane-view-form:checked ~ .command-bar-groups .rail-command-form,
+#crm-power-pane-view-navigation:checked ~ .command-bar-groups .rail-command-navigation,
+#crm-power-pane-view-utilities:checked ~ .command-bar-groups .rail-command-utilities {
+    display: grid;
+}
+
+#crm-power-pane-view-general:checked ~ .command-bar-rail [for="crm-power-pane-view-general"],
+#crm-power-pane-view-record:checked ~ .command-bar-rail [for="crm-power-pane-view-record"],
+#crm-power-pane-view-form:checked ~ .command-bar-rail [for="crm-power-pane-view-form"],
+#crm-power-pane-view-navigation:checked ~ .command-bar-rail [for="crm-power-pane-view-navigation"],
+#crm-power-pane-view-utilities:checked ~ .command-bar-rail [for="crm-power-pane-view-utilities"] {
+    border-color: var(--crm-power-pane-primary, $primary-color);
+    background: var(--crm-power-pane-elevated, $surface-hover);
+    color: var(--crm-power-pane-label, $accent-green);
+}
+
+.crm-power-pane-pane-controls {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+    padding: 0 14px 6px;
+}
+
+.layout-dock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 5px;
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 999px;
+    background: var(--crm-power-pane-bg, $dark-bg);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    color: var(--crm-power-pane-text-primary, $text-primary);
+}
+
+.layout-dock-label {
+    padding: 0 5px;
+    color: var(--crm-power-pane-text-primary, $text-primary);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.layout-dock-option {
+    min-width: 34px;
+    height: 24px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--crm-power-pane-label, $accent-green);
+    cursor: pointer;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+
+    &:hover,
+    &:focus {
+        border-color: var(--crm-power-pane-primary, $primary-color);
+        background: var(--crm-power-pane-surface-hover, $surface-hover);
+        outline: 2px solid var(--crm-power-pane-primary, $primary-color);
+        outline-offset: 1px;
+    }
+
+    &.selected,
+    &[aria-pressed="true"] {
+        border-color: var(--crm-power-pane-primary, $primary-color);
+        background: var(--crm-power-pane-elevated, $surface-hover);
+        color: var(--crm-power-pane-text-primary, $text-primary);
+    }
+}
+
 /* Icon classes — relative paths for Chrome extension */
 .crm-power-pane-subgroup span.fetch-xml-icon {
     background-image: url('#{$browserPrefix}/img/action-icons/fetch-xml.png');
@@ -872,6 +1146,14 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        color: var(--crm-power-pane-label, $accent-green);
+        font-weight: 600;
+    }
+
+    .crm-power-pane-theme-dock-chips {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 }
 
@@ -879,7 +1161,36 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     position: static;
     width: max-content;
     max-width: 100%;
-    margin-top: 14px;
+    margin-top: 0;
+}
+
+.command-bar-rail .theme-dock.matrix-dock {
+    box-sizing: border-box;
+    flex-direction: column;
+    justify-content: center;
+    width: 40px;
+    min-height: 44px;
+    margin-top: auto;
+    padding: 6px 5px;
+    border-radius: 10px;
+    gap: 4px;
+
+    .theme-dock-label,
+    .crm-power-pane-theme-dock-name {
+        max-width: 30px;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .crm-power-pane-theme-dock-chips {
+        gap: 2px;
+    }
+
+    .theme-chip {
+        width: 8px;
+        height: 8px;
+        border-width: 1px;
+    }
 }
 
 .theme-dock {
@@ -1149,6 +1460,47 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         }
     }
 
+    .command-bar-pane {
+        padding: 10px;
+    }
+
+    .command-bar-layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .command-bar-rail {
+        align-items: center;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 10px;
+        border-right: 0;
+        border-bottom: 1px solid var(--crm-power-pane-border, $border-color);
+    }
+
+    .command-bar-groups {
+        align-items: flex-start;
+        max-height: none;
+    }
+
+    .command-bar-group,
+    .command-bar-group.command-bar-group-wide {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .command-bar-group .crm-power-pane-subgroup > span {
+        white-space: normal;
+    }
+
+    .crm-power-pane-pane-controls {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding: 0 10px 6px;
+    }
+
     .theme-preview-panel {
         width: calc(100vw - 24px);
     }
@@ -1160,6 +1512,15 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         bottom: 8px;
         max-width: none;
         justify-content: flex-start;
+    }
+
+    .command-bar-rail .theme-dock.matrix-dock {
+        right: auto;
+        width: 40px;
+        margin-top: 0;
+        margin-left: auto;
+        max-width: 40px;
+        justify-content: center;
     }
 }
 

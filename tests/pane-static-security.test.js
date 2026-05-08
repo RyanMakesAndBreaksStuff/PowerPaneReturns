@@ -5,8 +5,10 @@ const assert = require("node:assert/strict");
 
 const paneSource = fs.readFileSync(path.join(__dirname, "..", "src/js/ui/pane.js"), "utf8");
 const paneHtml = fs.readFileSync(path.join(__dirname, "..", "src/html/ui/pane.html"), "utf8");
+const paneNoBarHtml = fs.readFileSync(path.join(__dirname, "..", "src/html/ui/pane_nobar.html"), "utf8");
 const paneScss = fs.readFileSync(path.join(__dirname, "..", "src/sass/ui/pane.scss"), "utf8");
 const activePaneHtml = paneHtml.replace(/<!--[\s\S]*?-->/g, "");
+const activePaneNoBarHtml = paneNoBarHtml.replace(/<!--[\s\S]*?-->/g, "");
 
 const currentCommandIds = [
   "user-info",
@@ -101,6 +103,79 @@ test("theme trigger uses the dock component while preserving dialog accessibilit
   assert.match(triggerTag, /\baria-haspopup="dialog"/);
   assert.match(triggerTag, /\baria-controls="crm-power-pane-theme-modal"/);
   assert.match(triggerTag, /\baria-expanded="false"/);
+  assert.doesNotMatch(activePaneHtml, /<a[^>]+id="crm-power-pane-theme-trigger"[\s\S]{0,300}<strong>\s*Theme\s*<\/strong>/);
+  assert.match(activePaneHtml, /crm-power-pane-theme-dock-chips/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-pane-controls\b[^"]*"[\s\S]*id="crm-power-pane-theme-trigger"/);
+});
+
+test("pane defaults to the no-rail command layout instead of the full matrix", () => {
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-pane\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-layout-nobar\b[^"]*"/);
+  assert.doesNotMatch(activePaneHtml, /\bclass="[^"]*\brail-command-pane\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-layout\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-groups\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-group\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-rail\b[^"]*"/);
+  assert.match(activePaneHtml, /command-bar-rail-button/);
+  assert.match(activePaneHtml, /type="radio" name="crm-power-pane-command-view"/);
+  assert.doesNotMatch(activePaneHtml, /\bclass="[^"]*\bmatrix-grid\b[^"]*"/);
+
+  [
+    ".command-bar-pane",
+    ".command-bar-layout",
+    ".command-bar-groups",
+    ".command-bar-group",
+  ].forEach(function (selector) {
+    assert.match(paneScss, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b"));
+  });
+
+  assert.match(paneScss, /\.command-bar-groups\s*\{[\s\S]*?overflow-x:\s*hidden/);
+  assert.doesNotMatch(paneScss, /\.command-bar-groups\s*\{[\s\S]*?overflow-x:\s*auto[\s\S]*?\n\}/);
+  assert.match(paneScss, /\.command-bar-groups\s*\{[\s\S]*?max-height:\s*none/);
+  assert.doesNotMatch(paneScss, /\.command-bar-groups\s*\{[\s\S]*?max-height:\s*\d+px[\s\S]*?\n\}/);
+  assert.match(paneScss, /\.crm-power-pane-layout-nobar \.command-bar-rail\s*\{[\s\S]*?display:\s*none/);
+});
+
+test("pane display selector can enable the rail command layout without clipping groups", () => {
+  assert.match(activePaneHtml, /type="radio" name="crm-power-pane-command-view"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-rail\b[^"]*"/);
+  assert.match(activePaneHtml, /for="crm-power-pane-view-general"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\brail-command-form\b[^"]*"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\blayout-dock\b[^"]*"/);
+  assert.match(activePaneHtml, /data-layout-mode="nobar"[^>]*aria-pressed="true"/);
+  assert.match(activePaneHtml, /data-layout-mode="rail"[^>]*aria-pressed="false"/);
+
+  assert.match(paneScss, /\.rail-command-pane \.rail-command-group\s*\{[\s\S]*?display:\s*none/);
+  assert.match(
+    paneScss,
+    /#crm-power-pane-view-form:checked\s*~\s*\.command-bar-groups\s*\.rail-command-form,[\s\S]*?\{\s*display:\s*grid/
+  );
+  assert.match(paneScss, /\.rail-command-pane \.command-bar-groups\s*\{[\s\S]*?min-height:\s*178px/);
+  assert.match(paneSource, /LayoutSelector:\s*\{/);
+  assert.match(paneSource, /StorageKey:\s*"crm-power-pane-layout"/);
+  assert.match(paneSource, /DefaultMode:\s*"nobar"/);
+  assert.match(paneSource, /\.addClass\("rail-command-pane"\)/);
+});
+
+test("pane_nobar preserves the no-rail command bar alternative", () => {
+  assert.match(activePaneNoBarHtml, /\bclass="[^"]*\bcommand-bar-pane\b[^"]*"/);
+  assert.match(activePaneNoBarHtml, /\bclass="[^"]*\bcommand-bar-groups\b[^"]*"/);
+  assert.doesNotMatch(activePaneNoBarHtml, /\bclass="[^"]*\bcommand-bar-rail\b[^"]*"/);
+  assert.doesNotMatch(activePaneNoBarHtml, /command-bar-rail-button/);
+});
+
+test("live pane command items include concise descriptions", () => {
+  var descriptionCount = (activePaneHtml.match(/\bclass="crm-power-pane-command-description"/g) || []).length;
+
+  assert.equal(descriptionCount, currentCommandIds.length);
+  assert.match(paneScss, /\.crm-power-pane-command-copy\s*\{[\s\S]*?display:\s*grid/);
+  assert.match(paneScss, /\.crm-power-pane-command-copy\s*\{[\s\S]*?gap:\s*1px/);
+  assert.match(
+    paneScss,
+    /\.crm-power-pane-command-copy,[\s\S]*?\.crm-power-pane-command-label,[\s\S]*?\.crm-power-pane-command-description\s*\{[\s\S]*?height:\s*auto;[\s\S]*?padding:\s*0;/
+  );
+  assert.match(paneScss, /\.crm-power-pane-command-description\s*\{[\s\S]*?font-size:\s*10px/);
+  assert.match(paneScss, /\.crm-power-pane-command-description\s*\{[\s\S]*?color:\s*var\(--crm-power-pane-text-primary/);
 });
 
 test("current command ids are present exactly once in pane markup", () => {
@@ -186,6 +261,21 @@ test("pane scss defines matrix, dock, preview card, responsive, and focus select
 test("pane command list omits redundant title chrome", () => {
   assert.doesNotMatch(paneHtml, /crm-power-pane-title/);
   assert.doesNotMatch(paneHtml, />\s*Power Pane Commands\s*</);
+});
+
+test("form-visible mockup gallery includes additional layout directions", () => {
+  var mockupHtml = fs.readFileSync(path.join(__dirname, "..", "docs/mocks/theme-ui-alternatives.html"), "utf8");
+
+  assert.match(mockupHtml, /Selected design:\s*option 4 command bar hybrid/);
+  assert.match(mockupHtml, /4\.\s*Selected:\s*Command Bar Hybrid/);
+
+  [
+    "Command Bar Hybrid",
+    "Right Inspector Dock",
+    "Bottom Utility Shelf",
+  ].forEach(function (layoutName) {
+    assert.match(mockupHtml, new RegExp(layoutName));
+  });
 });
 
 test("theme action labels use dedicated per-theme colors instead of status success", () => {

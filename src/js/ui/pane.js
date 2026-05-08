@@ -172,11 +172,13 @@ $(function () {
         $trigger.addClass("theme-dock");
 
         if (!$trigger.find(".crm-power-pane-theme-dock-name").length) {
-          $trigger.empty().append($("<strong>").text("Theme"));
+          $trigger.empty();
           $trigger.append($("<span>").addClass("theme-dock-label crm-power-pane-theme-dock-name"));
+          var $chips = $("<span>").addClass("crm-power-pane-theme-dock-chips").attr("aria-hidden", "true");
           [0, 1, 2].forEach(function () {
-            $trigger.append($("<span>").addClass("theme-chip").attr("aria-hidden", "true"));
+            $chips.append($("<span>").addClass("theme-chip"));
           });
+          $trigger.append($chips);
         }
 
         $trigger.find(".crm-power-pane-theme-dock-name").text(theme.name);
@@ -298,6 +300,63 @@ $(function () {
           if (e.key === "Escape" && $("#crm-power-pane-theme-modal").is(":visible")) {
             self.Close();
           }
+        });
+      },
+    },
+    LayoutSelector: {
+      StorageKey: "crm-power-pane-layout",
+      DefaultMode: "nobar",
+      Modes: ["nobar", "rail"],
+
+      NormalizeMode: function (mode) {
+        return this.Modes.indexOf(mode) > -1 ? mode : this.DefaultMode;
+      },
+
+      LoadMode: function () {
+        try {
+          return this.NormalizeMode(window.localStorage.getItem(this.StorageKey));
+        } catch (e) {
+          return this.DefaultMode;
+        }
+      },
+
+      SaveMode: function (mode) {
+        try {
+          window.localStorage.setItem(this.StorageKey, mode);
+        } catch (e) {
+          /* Storage can be blocked in embedded contexts. */
+        }
+      },
+
+      ApplyMode: function (mode) {
+        var normalized = this.NormalizeMode(mode);
+        var $pane = $(".crm-power-pane-sections");
+
+        $pane
+          .removeClass("crm-power-pane-layout-nobar crm-power-pane-layout-rail rail-command-pane")
+          .addClass("crm-power-pane-layout-" + normalized);
+
+        if (normalized === "rail") {
+          $pane.addClass("rail-command-pane");
+        }
+
+        $(".layout-dock-option").attr("aria-pressed", "false").removeClass("selected");
+        $('.layout-dock-option[data-layout-mode="' + normalized + '"]')
+          .attr("aria-pressed", "true")
+          .addClass("selected");
+
+        this.SaveMode(normalized);
+      },
+
+      RegisterEvents: function () {
+        var self = this;
+
+        this.ApplyMode(this.LoadMode());
+
+        $(".layout-dock-option").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.ApplyMode($(this).attr("data-layout-mode"));
         });
       },
     },
@@ -773,6 +832,7 @@ $(function () {
       });
 
       CrmPowerPane.ThemeSelector.RegisterEvents();
+      CrmPowerPane.LayoutSelector.RegisterEvents();
 
       // Toggle pane
       $(document).on("click", "#crm-power-pane-button", function (e) {
