@@ -100,6 +100,7 @@ test("theme trigger uses the dock component while preserving dialog accessibilit
   assert.match(triggerTag, /\brole="button"/);
   assert.match(triggerTag, /\baria-haspopup="dialog"/);
   assert.match(triggerTag, /\baria-controls="crm-power-pane-theme-modal"/);
+  assert.match(triggerTag, /\baria-expanded="false"/);
 });
 
 test("current command ids are present exactly once in pane markup", () => {
@@ -108,7 +109,7 @@ test("current command ids are present exactly once in pane markup", () => {
     return match[1];
   });
 
-  assert.deepEqual(actualCommandIds, currentCommandIds);
+  assert.deepEqual(new Set(actualCommandIds), new Set(currentCommandIds));
 
   currentCommandIds.forEach(function (commandId) {
     assert.equal(countAttributeValue(activePaneHtml, "id", commandId), 1, commandId + " should be unique");
@@ -128,6 +129,10 @@ test("theme selector config lists unique display names and safe DOM rendering", 
 });
 
 test("theme rendering never writes html into or near the theme list", () => {
+  var renderListBody = paneSource.slice(
+    paneSource.indexOf("RenderList: function"),
+    paneSource.indexOf("Open: function")
+  );
   var themeListReferences = Array.from(paneSource.matchAll(/crm-power-pane-theme-list/g), function (match) {
     var start = Math.max(0, match.index - 350);
     var end = Math.min(paneSource.length, match.index + 350);
@@ -135,6 +140,8 @@ test("theme rendering never writes html into or near the theme list", () => {
   });
 
   assert.ok(themeListReferences.length > 0, "Expected theme list rendering references");
+  assert.ok(renderListBody.length > 0, "Expected RenderList source body");
+  assert.doesNotMatch(renderListBody, /\.html\s*\(/);
   themeListReferences.forEach(function (reference) {
     assert.doesNotMatch(reference, /\.html\s*\(/);
   });
@@ -165,6 +172,7 @@ test("pane scss defines matrix, dock, preview card, responsive, and focus select
     ".theme-preview-panel",
     ".compact-picker",
     ".theme-card",
+    ".crm-power-pane-theme-card-title",
     ".swatches",
   ].forEach(function (selector) {
     assert.match(paneScss, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b"));
@@ -173,6 +181,11 @@ test("pane scss defines matrix, dock, preview card, responsive, and focus select
   assert.match(paneScss, /@media\s*\([^)]*max-width[^)]*\)[\s\S]*\.matrix-grid/);
   assert.match(paneScss, /\.theme-dock[\s\S]{0,500}&:focus/);
   assert.match(paneScss, /\.theme-card[\s\S]{0,500}&:focus/);
+});
+
+test("pane command list omits redundant title chrome", () => {
+  assert.doesNotMatch(paneHtml, /crm-power-pane-title/);
+  assert.doesNotMatch(paneHtml, />\s*Power Pane Commands\s*</);
 });
 
 test("theme action labels use dedicated per-theme colors instead of status success", () => {
@@ -201,5 +214,35 @@ test("theme action labels use dedicated per-theme colors instead of status succe
     assert.ok(label, "Missing label token for " + themeClass);
     assert.ok(success, "Missing success token for " + themeClass);
     assert.notEqual(label[1].toLowerCase(), success[1].toLowerCase(), themeClass);
+  });
+});
+
+test("light theme headers and icon tiles use contrast-safe tokens", () => {
+  assert.match(
+    paneScss,
+    /\.crm-power-pane-subgroup[\s\S]*span\.icon[\s\S]*background-color:\s*var\(--crm-power-pane-icon-bg/
+  );
+
+  [
+    "velvet-void",
+    "dark-matter",
+    "plasma-ice",
+    "aurora-rift",
+  ].forEach((themeId) => {
+    var blockPattern = new RegExp(
+      "#crm-power-pane\\.crm-power-pane-theme-" +
+        themeId +
+        "\\.crm-power-pane-mode-light\\s*\\{([\\s\\S]*?)\\n\\}"
+    );
+    var block = paneScss.match(blockPattern);
+    assert.ok(block, "Missing light theme block for " + themeId);
+    var background = block[1].match(/--crm-power-pane-bg:\s*(#[0-9A-Fa-f]{6});/);
+    var highlight = block[1].match(/--crm-power-pane-accent-highlight:\s*(#[0-9A-Fa-f]{6});/);
+    var iconBg = block[1].match(/--crm-power-pane-icon-bg:\s*(#[0-9A-Fa-f]{6});/);
+    assert.ok(background, "Missing background token for " + themeId);
+    assert.ok(highlight, "Missing accent highlight token for " + themeId);
+    assert.ok(iconBg, "Missing icon background token for " + themeId);
+    assert.notEqual(highlight[1].toLowerCase(), background[1].toLowerCase(), themeId + " header");
+    assert.notEqual(iconBg[1].toLowerCase(), background[1].toLowerCase(), themeId + " icon");
   });
 });

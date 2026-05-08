@@ -16,11 +16,60 @@ $(function () {
     ThemeSelector: {
       StorageKey: "crm-power-pane-theme",
       Themes: [
-        { id: "default", name: "Default", modes: ["dark"] },
-        { id: "dark-matter", name: "Dark Matter", modes: ["light", "dark"] },
-        { id: "velvet-void", name: "Velvet Void", modes: ["light", "dark"] },
-        { id: "plasma-ice", name: "Plasma Ice", modes: ["light", "dark"] },
-        { id: "aurora-rift", name: "Aurora Rift", modes: ["light", "dark"] },
+        {
+          id: "default",
+          name: "Default",
+          modes: ["dark"],
+          dockChips: ["#C8D1FA", "#A7E3A5", "#DAC157"],
+          palette: { background: "#111214", label: "#A7E3A5", border: "#2F2F33", status: "#A7E3A5" },
+          modePalettes: {
+            dark: { background: "#111214", label: "#A7E3A5", border: "#2F2F33", status: "#A7E3A5" },
+          },
+        },
+        {
+          id: "dark-matter",
+          name: "Dark Matter",
+          modes: ["light", "dark"],
+          dockChips: ["#CC00FF", "#EE66FF", "#00EE88"],
+          palette: { background: "#060410", label: "#EE66FF", border: "#201048", status: "#00EE88" },
+          modePalettes: {
+            light: { background: "#F8F4FF", label: "#5533AA", border: "#D4C8EE", status: "#0E9966" },
+            dark: { background: "#060410", label: "#EE66FF", border: "#201048", status: "#00EE88" },
+          },
+        },
+        {
+          id: "velvet-void",
+          name: "Velvet Void",
+          modes: ["light", "dark"],
+          dockChips: ["#FF00AA", "#FFB8EE", "#22DD88"],
+          palette: { background: "#08030C", label: "#FFB8EE", border: "#2C1040", status: "#22DD88" },
+          modePalettes: {
+            light: { background: "#FFF0FA", label: "#8C3A7A", border: "#E0C8DA", status: "#149950" },
+            dark: { background: "#08030C", label: "#FFB8EE", border: "#2C1040", status: "#22DD88" },
+          },
+        },
+        {
+          id: "plasma-ice",
+          name: "Plasma Ice",
+          modes: ["light", "dark"],
+          dockChips: ["#00EEFF", "#FFAA00", "#00E870"],
+          palette: { background: "#04080E", label: "#00EEFF", border: "#182430", status: "#00E870" },
+          modePalettes: {
+            light: { background: "#F2F8FC", label: "#007A88", border: "#C4D4E0", status: "#0E9048" },
+            dark: { background: "#04080E", label: "#00EEFF", border: "#182430", status: "#00E870" },
+          },
+        },
+        {
+          id: "aurora-rift",
+          name: "Aurora Rift",
+          modes: ["light", "dark"],
+          dockChips: ["#00FF88", "#FF0080", "#00EE66"],
+          palette: { background: "#030C0A", label: "#FF0080", border: "#1A1E28", status: "#00EE66" },
+          modePalettes: {
+            light: { background: "#F0FEF8", label: "#AA0066", border: "#BCD8CC", status: "#009944" },
+            dark: { background: "#030C0A", label: "#FF0080", border: "#1A1E28", status: "#00EE66" },
+          },
+        },
       ],
 
       DefaultSelection: {
@@ -67,6 +116,14 @@ $(function () {
         }
       },
 
+      GetPalette: function (theme, mode) {
+        if (theme.modePalettes && theme.modePalettes[mode]) {
+          return theme.modePalettes[mode];
+        }
+
+        return theme.palette;
+      },
+
       ApplySelection: function (selection) {
         var normalized = this.NormalizeSelection(selection);
         var $pane = $("#crm-power-pane");
@@ -84,6 +141,7 @@ $(function () {
         $pane.addClass("crm-power-pane-mode-" + normalized.mode);
         this.SaveSelection(normalized);
         this.UpdateSelectedState(normalized);
+        this.UpdateDockState(normalized);
       },
 
       UpdateSelectedState: function (selection) {
@@ -100,27 +158,76 @@ $(function () {
           .attr("aria-pressed", "true");
       },
 
+      UpdateDockState: function (selection) {
+        var normalized = this.NormalizeSelection(selection);
+        var theme = this.FindTheme(normalized.theme);
+        var palette = this.GetPalette(theme, normalized.mode);
+        var $trigger = $("#crm-power-pane-theme-trigger");
+        var chips = [palette.label, palette.status, palette.border];
+
+        if (!$trigger.length) {
+          return;
+        }
+
+        $trigger.addClass("theme-dock");
+
+        if (!$trigger.find(".crm-power-pane-theme-dock-name").length) {
+          $trigger.empty().append($("<strong>").text("Theme"));
+          $trigger.append($("<span>").addClass("theme-dock-label crm-power-pane-theme-dock-name"));
+          [0, 1, 2].forEach(function () {
+            $trigger.append($("<span>").addClass("theme-chip").attr("aria-hidden", "true"));
+          });
+        }
+
+        $trigger.find(".crm-power-pane-theme-dock-name").text(theme.name);
+        $trigger.find(".theme-chip").each(function (index) {
+          $(this).css("background-color", chips[index] || palette.label);
+        });
+      },
+
       RenderList: function () {
         var self = this;
         var $list = $("#crm-power-pane-theme-list").empty();
 
         this.Themes.forEach(function (theme) {
-          var $row = $("<li>").addClass("crm-power-pane-theme-row").attr("data-theme-id", theme.id);
-          var $name = $("<button>")
+          var previewMode = theme.modes.indexOf("dark") > -1 ? "dark" : theme.modes[0];
+          var palette = self.GetPalette(theme, previewMode);
+          var $row = $("<li>")
+            .addClass("crm-power-pane-theme-row theme-card")
+            .attr("data-theme-id", theme.id);
+          var $cardButton = $("<button>")
             .attr("type", "button")
             .addClass("crm-power-pane-theme-name")
-            .text(theme.name)
             .on("click", function () {
-              self.ApplySelection({ theme: theme.id, mode: theme.modes[0] });
+              self.ApplySelection({ theme: theme.id, mode: previewMode });
             });
+          var $swatches = $("<span>").addClass("swatches").attr("aria-hidden", "true");
+          var $meta = $("<span>").addClass("theme-meta");
 
-          $row.append($name);
+          [
+            palette.background,
+            palette.label,
+            palette.status,
+            palette.border,
+          ].forEach(function (color) {
+            $swatches.append($("<span>").css("background-color", color));
+          });
+
+          $meta
+            .append($("<span>").text("Label"))
+            .append($("<span>").text(palette.label));
+
+          $cardButton.append($("<span>").addClass("crm-power-pane-theme-card-title").text(theme.name));
+          $cardButton.append($swatches);
+          $cardButton.append($meta);
+
+          $row.append($cardButton);
 
           if (theme.modes.length > 1) {
             var $modeGroup = $("<span>").addClass("crm-power-pane-theme-mode-group");
             [
-              { mode: "light", icon: "☀", label: "Light mode" },
-              { mode: "dark", icon: "☾", label: "Dark mode" },
+              { mode: "light", icon: "L", label: "Light mode" },
+              { mode: "dark", icon: "D", label: "Dark mode" },
             ].forEach(function (item) {
               $modeGroup.append(
                 $("<button>")
@@ -147,13 +254,14 @@ $(function () {
       Open: function () {
         $("#crm-power-pane-theme-modal-bg").fadeIn(CrmPowerPane.Constants.SlideTime);
         $("#crm-power-pane-theme-modal").fadeIn(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-trigger").attr("aria-expanded", "true");
         $("#crm-power-pane-theme-modal").find("button").first().focus();
       },
 
       Close: function () {
         $("#crm-power-pane-theme-modal").fadeOut(CrmPowerPane.Constants.SlideTime);
         $("#crm-power-pane-theme-modal-bg").fadeOut(CrmPowerPane.Constants.SlideTime);
-        $("#crm-power-pane-theme-trigger").focus();
+        $("#crm-power-pane-theme-trigger").attr("aria-expanded", "false").focus();
       },
 
       RegisterEvents: function () {
@@ -166,6 +274,14 @@ $(function () {
           e.preventDefault();
           e.stopPropagation();
           self.Open();
+        });
+
+        $("#crm-power-pane-theme-trigger").on("keydown", function (e) {
+          if (e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            e.stopPropagation();
+            self.Open();
+          }
         });
 
         $("#crm-power-pane-theme-modal-bg, .crm-power-pane-theme-close").on("click", function (e) {
