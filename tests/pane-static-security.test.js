@@ -96,6 +96,11 @@ test("theme selector markup exists once with an autosized modal shell", () => {
 
 test("theme trigger uses the dock component while preserving dialog accessibility", () => {
   var triggerTag = extractOpenTagById(activePaneHtml, "crm-power-pane-theme-trigger");
+  var paneControlsIndex = activePaneHtml.indexOf("crm-power-pane-pane-controls");
+  var themeTriggerIndex = activePaneHtml.indexOf("id=\"crm-power-pane-theme-trigger\"");
+  var layoutDockIndex = activePaneHtml.indexOf("class=\"layout-dock\"");
+  var commandLayoutIndex = activePaneHtml.indexOf("class=\"command-bar-layout\"");
+  var railMarkup = (activePaneHtml.match(/<nav class="command-bar-rail"[\s\S]*?<\/nav>/) || [""])[0];
 
   assert.ok(triggerTag, "Missing crm-power-pane-theme-trigger element");
   assert.match(triggerTag, /\bclass="[^"]*\btheme-dock\b[^"]*"/);
@@ -106,9 +111,27 @@ test("theme trigger uses the dock component while preserving dialog accessibilit
   assert.doesNotMatch(activePaneHtml, /<a[^>]+id="crm-power-pane-theme-trigger"[\s\S]{0,300}<strong>\s*Theme\s*<\/strong>/);
   assert.match(activePaneHtml, /crm-power-pane-theme-dock-chips/);
   assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-pane-controls\b[^"]*"[\s\S]*id="crm-power-pane-theme-trigger"/);
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-utility-bar\b[^"]*"/);
+  assert.match(paneScss, /\.crm-power-pane-utility-bar\s*\{[\s\S]*?min-height:\s*28px/);
+  assert.match(paneScss, /\.crm-power-pane-utility-bar\s*\{[\s\S]*?padding:\s*1px 8px/);
+  assert.doesNotMatch(paneScss, /\.crm-power-pane-utility-bar\s*\{[^}]*padding:\s*6px 8px/);
+  assert.match(paneScss, /\.crm-power-pane-utility-bar[\s\S]*?\.theme-dock-label,[\s\S]*?\.crm-power-pane-theme-dock-name\s*\{[\s\S]*?line-height:\s*1/);
+  assert.ok(paneControlsIndex > -1, "Missing pane controls row");
+  assert.ok(themeTriggerIndex > paneControlsIndex, "Theme dock should be inside pane controls");
+  assert.ok(layoutDockIndex > paneControlsIndex, "Display dock should be inside pane controls");
+  assert.ok(themeTriggerIndex < layoutDockIndex, "Theme dock should sit before the display selector");
+  assert.ok(paneControlsIndex < commandLayoutIndex, "Pane controls should sit above the command layout");
+  assert.ok(railMarkup, "Missing command rail");
+  assert.doesNotMatch(railMarkup, /crm-power-pane-theme-trigger/, "Theme dock should not be inside command rail");
+  assert.doesNotMatch(railMarkup, /layout-dock/, "Display dock should not be inside command rail");
 });
 
 test("pane defaults to the no-rail command layout instead of the full matrix", () => {
+  var paneControlsIndex = activePaneHtml.indexOf("crm-power-pane-pane-controls");
+  var notesIndex = activePaneHtml.indexOf("id=\"crm-power-pane-notes\"");
+  var noteIndex = activePaneHtml.indexOf("id=\"crm-power-pane-note\"");
+  var feedbackIndex = activePaneHtml.indexOf("id=\"crm-power-pane-github\"");
+
   assert.match(activePaneHtml, /\bclass="[^"]*\bcommand-bar-pane\b[^"]*"/);
   assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-layout-nobar\b[^"]*"/);
   assert.doesNotMatch(activePaneHtml, /\bclass="[^"]*\brail-command-pane\b[^"]*"/);
@@ -131,9 +154,22 @@ test("pane defaults to the no-rail command layout instead of the full matrix", (
 
   assert.match(paneScss, /\.command-bar-groups\s*\{[\s\S]*?overflow-x:\s*hidden/);
   assert.doesNotMatch(paneScss, /\.command-bar-groups\s*\{[\s\S]*?overflow-x:\s*auto[\s\S]*?\n\}/);
-  assert.match(paneScss, /\.command-bar-groups\s*\{[\s\S]*?max-height:\s*none/);
-  assert.doesNotMatch(paneScss, /\.command-bar-groups\s*\{[\s\S]*?max-height:\s*\d+px[\s\S]*?\n\}/);
+  assert.match(paneScss, /\.command-bar-layout\s*\{[\s\S]*?min-width:\s*0/);
+  assert.match(paneScss, /\.command-bar-groups\s*\{[\s\S]*?min-width:\s*0/);
+  assert.match(paneScss, /\.crm-power-pane-sections\s*\{[\s\S]*?max-height:\s*min\(360px,\s*42dvh\)/);
+  assert.match(paneScss, /\.crm-power-pane-sections\s*\{[\s\S]*?overflow:\s*hidden/);
+  assert.match(paneScss, /\.crm-power-pane-layout-nobar \.command-bar-groups\s*\{[\s\S]*?overflow-x:\s*hidden/);
+  assert.match(paneScss, /\.crm-power-pane-layout-nobar \.command-bar-groups\s*\{[\s\S]*?overflow-y:\s*auto/);
   assert.match(paneScss, /\.crm-power-pane-layout-nobar \.command-bar-rail\s*\{[\s\S]*?display:\s*none/);
+  assert.ok(paneControlsIndex > -1 && paneControlsIndex < notesIndex, "Pane controls should appear before notes");
+  assert.match(activePaneHtml, /\bclass="[^"]*\bcrm-power-pane-footer\b[^"]*"/);
+  assert.ok(noteIndex > -1 && feedbackIndex > -1 && noteIndex < feedbackIndex, "Warning text should appear before feedback");
+  assert.match(paneScss, /#crm-power-pane-notes\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(paneScss, /#crm-power-pane-notes\s*\{[\s\S]*?flex-wrap:\s*nowrap/);
+  assert.match(paneScss, /#crm-power-pane-notes\s*\{[\s\S]*?justify-content:\s*flex-end/);
+  assert.match(paneScss, /#crm-power-pane-notes\s*\{[\s\S]*?color:\s*var\(--crm-power-pane-text-primary/);
+  assert.match(paneScss, /#crm-power-pane-note\s*\{[\s\S]*?color:\s*var\(--crm-power-pane-text-primary/);
+  assert.match(paneScss, /#crm-power-pane-github\s*\{[\s\S]*?color:\s*var\(--crm-power-pane-accent-highlight/);
 });
 
 test("pane display selector can enable the rail command layout without clipping groups", () => {
@@ -176,6 +212,8 @@ test("live pane command items include concise descriptions", () => {
   );
   assert.match(paneScss, /\.crm-power-pane-command-description\s*\{[\s\S]*?font-size:\s*10px/);
   assert.match(paneScss, /\.crm-power-pane-command-description\s*\{[\s\S]*?color:\s*var\(--crm-power-pane-text-primary/);
+  assert.match(paneScss, /\.crm-power-pane-layout-nobar \.command-bar-group \.crm-power-pane-subgroup \.crm-power-pane-command-description\s*\{[^}]*display:\s*none/);
+  assert.doesNotMatch(paneScss, /\.rail-command-pane \.crm-power-pane-command-description\s*\{[\s\S]*?display:\s*none/);
 });
 
 test("current command ids are present exactly once in pane markup", () => {

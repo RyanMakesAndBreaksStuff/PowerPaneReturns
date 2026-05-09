@@ -1,5 +1,20 @@
 ﻿<div id="crm-power-pane">
    <div class="crm-power-pane-sections command-bar-pane crm-power-pane-layout-nobar" tabindex="9999">
+        <div class="crm-power-pane-pane-controls crm-power-pane-utility-bar" aria-label="Power Pane display controls">
+            <a id="crm-power-pane-theme-trigger" class="theme-dock matrix-dock" href="#" role="button" aria-haspopup="dialog" aria-controls="crm-power-pane-theme-modal" aria-expanded="false">
+                <span class="theme-dock-label crm-power-pane-theme-dock-name">Default</span>
+                <span class="crm-power-pane-theme-dock-chips" aria-hidden="true">
+                    <span class="theme-chip"></span>
+                    <span class="theme-chip"></span>
+                    <span class="theme-chip"></span>
+                </span>
+            </a>
+            <div class="layout-dock" role="group" aria-label="Display mode">
+                <span class="layout-dock-label">Display</span>
+                <button type="button" class="layout-dock-option" data-layout-mode="nobar" aria-pressed="true">All</button>
+                <button type="button" class="layout-dock-option" data-layout-mode="rail" aria-pressed="false">Rail</button>
+            </div>
+        </div>
         <div class="command-bar-layout">
             <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-general" checked>
             <input class="command-bar-control" type="radio" name="crm-power-pane-command-view" id="crm-power-pane-view-record">
@@ -66,24 +81,9 @@
                 </ul>
             </div>
         </div>
-        <div class="crm-power-pane-pane-controls" aria-label="Power Pane display controls">
-            <a id="crm-power-pane-theme-trigger" class="theme-dock matrix-dock" href="#" role="button" aria-haspopup="dialog" aria-controls="crm-power-pane-theme-modal" aria-expanded="false">
-                <span class="theme-dock-label crm-power-pane-theme-dock-name">Default</span>
-                <span class="crm-power-pane-theme-dock-chips" aria-hidden="true">
-                    <span class="theme-chip"></span>
-                    <span class="theme-chip"></span>
-                    <span class="theme-chip"></span>
-                </span>
-            </a>
-            <div class="layout-dock" role="group" aria-label="Display mode">
-                <span class="layout-dock-label">Display</span>
-                <button type="button" class="layout-dock-option" data-layout-mode="nobar" aria-pressed="true">All</button>
-                <button type="button" class="layout-dock-option" data-layout-mode="rail" aria-pressed="false">Rail</button>
-            </div>
-        </div>
-        <div id="crm-power-pane-notes" style="clear:both">
-            <a id="crm-power-pane-github" target="_blank" href="https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns/issues"> <span></span> Provide Feedback</a>
+        <div id="crm-power-pane-notes" class="crm-power-pane-footer">
             <div id="crm-power-pane-note">Power Pane Returns is intended for use by developers, testers and power users to ease development, unit and system testing efforts. Production use is… a choice.</div>
+            <a id="crm-power-pane-github" target="_blank" href="https://github.com/RyanMakesAndBreaksStuff/PowerPaneReturns/issues"> <span></span> Provide Feedback</a>
         </div>
     </div>
     <div id="crm-power-pane-popup-bg"></div>

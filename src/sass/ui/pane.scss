@@ -232,10 +232,13 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     position: absolute;
     top: 50px;
     display: none;
+    box-sizing: border-box;
     width: 100%;
+    max-height: min(360px, 42dvh);
+    overflow: hidden;
     background: var(--crm-power-pane-surface, $surface);
     color: var(--crm-power-pane-text-primary, $text-primary);
-    padding: 10px 0;
+    padding: 6px 0 0;
     font-size: 14px;
     box-shadow: $shadow-4;
     outline: none;
@@ -387,6 +390,9 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
     min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    max-height: calc(min(360px, 42dvh) - 70px);
 }
 
 .command-bar-rail {
@@ -434,7 +440,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
 .command-bar-groups {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     align-items: start;
     gap: 10px;
     min-width: 0;
@@ -446,7 +452,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
 .command-bar-group {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     align-content: start;
     gap: 6px 8px;
     min-width: 0;
@@ -460,7 +466,7 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
     &.command-bar-group-wide {
         grid-column: span 2;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 
     .crm-power-pane-header {
@@ -551,6 +557,56 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     display: none;
 }
 
+.crm-power-pane-layout-nobar .command-bar-groups {
+    max-height: calc(min(360px, 42dvh) - 86px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 7px;
+    padding: 7px;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 3px 6px;
+    padding: 5px 6px;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group.command-bar-group-wide {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-header {
+    padding-bottom: 2px;
+    font-size: 12px;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-subgroup {
+    min-height: 28px;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-subgroup > span {
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+    min-height: 28px;
+    padding: 3px 5px;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-subgroup span.icon {
+    width: 20px;
+    height: 20px;
+    background-size: 15px !important;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-command-label {
+    font-size: 11px;
+    line-height: 1.1;
+}
+
+.crm-power-pane-layout-nobar .command-bar-group .crm-power-pane-subgroup .crm-power-pane-command-description {
+    display: none;
+}
+
 .command-bar-control {
     position: absolute;
     width: 1px;
@@ -562,6 +618,9 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 .rail-command-pane .command-bar-groups {
     grid-template-columns: minmax(0, 1fr);
     min-height: 178px;
+    max-height: calc(min(360px, 42dvh) - 86px);
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .rail-command-pane .command-bar-group.command-bar-group-wide {
@@ -597,7 +656,41 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
     justify-content: flex-end;
     gap: 8px;
     min-width: 0;
-    padding: 0 14px 6px;
+    padding: 0 14px 2px;
+}
+
+.crm-power-pane-utility-bar {
+    min-height: 28px;
+    justify-content: space-between;
+    width: calc(100% - 16px);
+    margin: 0 8px 3px;
+    padding: 1px 8px;
+    border: 1px solid var(--crm-power-pane-border, $border-color);
+    border-radius: 8px;
+    background: var(--crm-power-pane-bg, #111214);
+}
+
+.crm-power-pane-utility-bar .theme-dock,
+.crm-power-pane-utility-bar #crm-power-pane-theme-trigger,
+.crm-power-pane-utility-bar .layout-dock {
+    min-height: 22px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.crm-power-pane-utility-bar .theme-dock-label,
+.crm-power-pane-utility-bar .crm-power-pane-theme-dock-name {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.crm-power-pane-pane-controls #crm-power-pane-theme-trigger {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    flex: 0 1 auto;
 }
 
 .layout-dock {
@@ -1067,27 +1160,48 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
 #crm-power-pane-notes {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    min-height: 28px;
+    padding: 5px 14px 7px;
+    border-top: 1px solid var(--crm-power-pane-border, $border-color);
+    background: var(--crm-power-pane-bg, $dark-bg);
+    color: var(--crm-power-pane-text-primary, $text-primary);
     font-size: 11px;
     clear: both;
-    float: right;
-    margin-right: 40px;
+    float: none;
+    margin-right: 0;
 }
 
 #crm-power-pane-note {
-    color: var(--crm-power-pane-text-secondary, $text-secondary);
-    clear: both;
+    color: var(--crm-power-pane-text-primary, $text-primary);
+    clear: none;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #crm-power-pane-github {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
     vertical-align: sub;
     width: auto;
     height: auto;
     padding: 3px;
-    float: right;
-    clear: both;
+    float: none;
+    clear: none;
     font-size: 11px;
-    color: var(--crm-power-pane-success, $accent-lime);
+    color: var(--crm-power-pane-accent-highlight, $accent-pink);
+    text-decoration: none;
 
     span {
         background: url('#{$browserPrefix}/img/github.png');
@@ -1095,7 +1209,8 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         width: 22px;
         height: 22px;
         display: block;
-        float: left;
+        flex: 0 0 auto;
+        float: none;
         vertical-align: sub;
         margin-top: -4px;
         margin-right: 3px;
@@ -1480,7 +1595,6 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
 
     .command-bar-groups {
         align-items: flex-start;
-        max-height: none;
     }
 
     .command-bar-group,
@@ -1501,6 +1615,13 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         padding: 0 10px 6px;
     }
 
+    .crm-power-pane-utility-bar {
+        justify-content: space-between;
+        width: calc(100% - 16px);
+        margin: 0 8px 3px;
+        padding: 1px 8px;
+    }
+
     .theme-preview-panel {
         width: calc(100vw - 24px);
     }
@@ -1512,6 +1633,13 @@ $shadow-4: 0 6px 18px rgba(0, 0, 0, 0.6);
         bottom: 8px;
         max-width: none;
         justify-content: flex-start;
+    }
+
+    .crm-power-pane-pane-controls #crm-power-pane-theme-trigger {
+        left: auto;
+        right: auto;
+        bottom: auto;
+        max-width: min(330px, 100%);
     }
 
     .command-bar-rail .theme-dock.matrix-dock {
