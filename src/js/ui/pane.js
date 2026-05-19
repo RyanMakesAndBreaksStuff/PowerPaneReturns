@@ -13,14 +13,71 @@ $(function () {
       NotificationClassPrefix: "crm-power-pane-",
       NotificationTimer: null,
     },
+    RuntimeCache: {
+      CurrentAppProperties: null,
+      CurrentAppPropertiesPromise: null,
+      DefaultSolutionId: null,
+      DefaultSolutionIdPromise: null,
+      CurrentEnvironmentId: null,
+      CurrentEnvironmentIdPromise: null,
+    },
     ThemeSelector: {
       StorageKey: "crm-power-pane-theme",
       Themes: [
-        { id: "default", name: "Default", modes: ["dark"] },
-        { id: "dark-matter", name: "Dark Matter", modes: ["light", "dark"] },
-        { id: "velvet-void", name: "Velvet Void", modes: ["light", "dark"] },
-        { id: "plasma-ice", name: "Plasma Ice", modes: ["light", "dark"] },
-        { id: "aurora-rift", name: "Aurora Rift", modes: ["light", "dark"] },
+        {
+          id: "default",
+          name: "Default",
+          modes: ["dark"],
+          dockChips: ["#C8D1FA", "#A7E3A5", "#DAC157"],
+          palette: { background: "#111214", label: "#A7E3A5", border: "#2F2F33", status: "#A7E3A5" },
+          modePalettes: {
+            dark: { background: "#111214", label: "#A7E3A5", border: "#2F2F33", status: "#A7E3A5" },
+          },
+        },
+        {
+          id: "dark-matter",
+          name: "Dark Matter",
+          modes: ["light", "dark"],
+          dockChips: ["#CC00FF", "#EE66FF", "#00EE88"],
+          palette: { background: "#060410", label: "#EE66FF", border: "#201048", status: "#00EE88" },
+          modePalettes: {
+            light: { background: "#F8F4FF", label: "#5533AA", border: "#D4C8EE", status: "#0E9966" },
+            dark: { background: "#060410", label: "#EE66FF", border: "#201048", status: "#00EE88" },
+          },
+        },
+        {
+          id: "velvet-void",
+          name: "Velvet Void",
+          modes: ["light", "dark"],
+          dockChips: ["#FF00AA", "#FFB8EE", "#22DD88"],
+          palette: { background: "#08030C", label: "#FFB8EE", border: "#2C1040", status: "#22DD88" },
+          modePalettes: {
+            light: { background: "#FFF0FA", label: "#8C3A7A", border: "#E0C8DA", status: "#149950" },
+            dark: { background: "#08030C", label: "#FFB8EE", border: "#2C1040", status: "#22DD88" },
+          },
+        },
+        {
+          id: "plasma-ice",
+          name: "Plasma Ice",
+          modes: ["light", "dark"],
+          dockChips: ["#00EEFF", "#FFAA00", "#00E870"],
+          palette: { background: "#04080E", label: "#00EEFF", border: "#182430", status: "#00E870" },
+          modePalettes: {
+            light: { background: "#F2F8FC", label: "#007A88", border: "#C4D4E0", status: "#0E9048" },
+            dark: { background: "#04080E", label: "#00EEFF", border: "#182430", status: "#00E870" },
+          },
+        },
+        {
+          id: "aurora-rift",
+          name: "Aurora Rift",
+          modes: ["light", "dark"],
+          dockChips: ["#00FF88", "#FF0080", "#00EE66"],
+          palette: { background: "#030C0A", label: "#FF0080", border: "#1A1E28", status: "#00EE66" },
+          modePalettes: {
+            light: { background: "#F0FEF8", label: "#AA0066", border: "#BCD8CC", status: "#009944" },
+            dark: { background: "#030C0A", label: "#FF0080", border: "#1A1E28", status: "#00EE66" },
+          },
+        },
       ],
 
       DefaultSelection: {
@@ -67,6 +124,14 @@ $(function () {
         }
       },
 
+      GetPalette: function (theme, mode) {
+        if (theme.modePalettes && theme.modePalettes[mode]) {
+          return theme.modePalettes[mode];
+        }
+
+        return theme.palette;
+      },
+
       ApplySelection: function (selection) {
         var normalized = this.NormalizeSelection(selection);
         var $pane = $("#crm-power-pane");
@@ -84,6 +149,7 @@ $(function () {
         $pane.addClass("crm-power-pane-mode-" + normalized.mode);
         this.SaveSelection(normalized);
         this.UpdateSelectedState(normalized);
+        this.UpdateDockState(normalized);
       },
 
       UpdateSelectedState: function (selection) {
@@ -100,27 +166,78 @@ $(function () {
           .attr("aria-pressed", "true");
       },
 
+      UpdateDockState: function (selection) {
+        var normalized = this.NormalizeSelection(selection);
+        var theme = this.FindTheme(normalized.theme);
+        var palette = this.GetPalette(theme, normalized.mode);
+        var $trigger = $("#crm-power-pane-theme-trigger");
+        var chips = [palette.label, palette.status, palette.border];
+
+        if (!$trigger.length) {
+          return;
+        }
+
+        $trigger.addClass("theme-dock");
+
+        if (!$trigger.find(".crm-power-pane-theme-dock-name").length) {
+          $trigger.empty();
+          $trigger.append($("<span>").addClass("theme-dock-label crm-power-pane-theme-dock-name"));
+          var $chips = $("<span>").addClass("crm-power-pane-theme-dock-chips").attr("aria-hidden", "true");
+          [0, 1, 2].forEach(function () {
+            $chips.append($("<span>").addClass("theme-chip"));
+          });
+          $trigger.append($chips);
+        }
+
+        $trigger.find(".crm-power-pane-theme-dock-name").text(theme.name);
+        $trigger.find(".theme-chip").each(function (index) {
+          $(this).css("background-color", chips[index] || palette.label);
+        });
+      },
+
       RenderList: function () {
         var self = this;
         var $list = $("#crm-power-pane-theme-list").empty();
 
         this.Themes.forEach(function (theme) {
-          var $row = $("<li>").addClass("crm-power-pane-theme-row").attr("data-theme-id", theme.id);
-          var $name = $("<button>")
+          var previewMode = theme.modes.indexOf("dark") > -1 ? "dark" : theme.modes[0];
+          var palette = self.GetPalette(theme, previewMode);
+          var $row = $("<li>")
+            .addClass("crm-power-pane-theme-row theme-card")
+            .attr("data-theme-id", theme.id);
+          var $cardButton = $("<button>")
             .attr("type", "button")
             .addClass("crm-power-pane-theme-name")
-            .text(theme.name)
             .on("click", function () {
-              self.ApplySelection({ theme: theme.id, mode: theme.modes[0] });
+              self.ApplySelection({ theme: theme.id, mode: previewMode });
             });
+          var $swatches = $("<span>").addClass("swatches").attr("aria-hidden", "true");
+          var $meta = $("<span>").addClass("theme-meta");
 
-          $row.append($name);
+          [
+            palette.background,
+            palette.label,
+            palette.status,
+            palette.border,
+          ].forEach(function (color) {
+            $swatches.append($("<span>").css("background-color", color));
+          });
+
+          $meta
+            .append($("<span>").text("Label"))
+            .append($("<span>").text(palette.label));
+
+          $cardButton.append($("<span>").addClass("crm-power-pane-theme-card-title").text(theme.name));
+          $cardButton.append($swatches);
+          $cardButton.append($meta);
+
+          $row.append($cardButton);
 
           if (theme.modes.length > 1) {
             var $modeGroup = $("<span>").addClass("crm-power-pane-theme-mode-group");
             [
-              { mode: "light", icon: "☀", label: "Light mode" },
-              { mode: "dark", icon: "☾", label: "Dark mode" },
+              { mode: "light", icon: "L", label: "Light mode" },
+              { mode: "dark", icon: "D", label: "Dark mode" },
             ].forEach(function (item) {
               $modeGroup.append(
                 $("<button>")
@@ -147,13 +264,14 @@ $(function () {
       Open: function () {
         $("#crm-power-pane-theme-modal-bg").fadeIn(CrmPowerPane.Constants.SlideTime);
         $("#crm-power-pane-theme-modal").fadeIn(CrmPowerPane.Constants.SlideTime);
+        $("#crm-power-pane-theme-trigger").attr("aria-expanded", "true");
         $("#crm-power-pane-theme-modal").find("button").first().focus();
       },
 
       Close: function () {
         $("#crm-power-pane-theme-modal").fadeOut(CrmPowerPane.Constants.SlideTime);
         $("#crm-power-pane-theme-modal-bg").fadeOut(CrmPowerPane.Constants.SlideTime);
-        $("#crm-power-pane-theme-trigger").focus();
+        $("#crm-power-pane-theme-trigger").attr("aria-expanded", "false").focus();
       },
 
       RegisterEvents: function () {
@@ -166,6 +284,14 @@ $(function () {
           e.preventDefault();
           e.stopPropagation();
           self.Open();
+        });
+
+        $("#crm-power-pane-theme-trigger").on("keydown", function (e) {
+          if (e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            e.stopPropagation();
+            self.Open();
+          }
         });
 
         $("#crm-power-pane-theme-modal-bg, .crm-power-pane-theme-close").on("click", function (e) {
@@ -182,6 +308,63 @@ $(function () {
           if (e.key === "Escape" && $("#crm-power-pane-theme-modal").is(":visible")) {
             self.Close();
           }
+        });
+      },
+    },
+    LayoutSelector: {
+      StorageKey: "crm-power-pane-layout",
+      DefaultMode: "nobar",
+      Modes: ["nobar", "rail"],
+
+      NormalizeMode: function (mode) {
+        return this.Modes.indexOf(mode) > -1 ? mode : this.DefaultMode;
+      },
+
+      LoadMode: function () {
+        try {
+          return this.NormalizeMode(window.localStorage.getItem(this.StorageKey));
+        } catch (e) {
+          return this.DefaultMode;
+        }
+      },
+
+      SaveMode: function (mode) {
+        try {
+          window.localStorage.setItem(this.StorageKey, mode);
+        } catch (e) {
+          /* Storage can be blocked in embedded contexts. */
+        }
+      },
+
+      ApplyMode: function (mode) {
+        var normalized = this.NormalizeMode(mode);
+        var $pane = $(".crm-power-pane-sections");
+
+        $pane
+          .removeClass("crm-power-pane-layout-nobar crm-power-pane-layout-rail rail-command-pane")
+          .addClass("crm-power-pane-layout-" + normalized);
+
+        if (normalized === "rail") {
+          $pane.addClass("rail-command-pane");
+        }
+
+        $(".layout-dock-option").attr("aria-pressed", "false").removeClass("selected");
+        $('.layout-dock-option[data-layout-mode="' + normalized + '"]')
+          .attr("aria-pressed", "true")
+          .addClass("selected");
+
+        this.SaveMode(normalized);
+      },
+
+      RegisterEvents: function () {
+        var self = this;
+
+        this.ApplyMode(this.LoadMode());
+
+        $(".layout-dock-option").on("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.ApplyMode($(this).attr("data-layout-mode"));
         });
       },
     },
@@ -531,6 +714,150 @@ $(function () {
           return res.json();
         });
       },
+
+      openInNewTab: function (url) {
+        var link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      },
+
+      openInNewWindow: function (url, windowFeatures) {
+        var features = windowFeatures ? windowFeatures + ",noopener" : "noopener";
+        var openedWindow = window.open(url, "_blank", features);
+        if (openedWindow) {
+          try {
+            openedWindow.opener = null;
+          } catch (e) {
+            /* noopener is still enforced by the browser feature string. */
+          }
+        }
+      },
+
+      getCurrentAppProperties: function () {
+        if (CrmPowerPane.RuntimeCache.CurrentAppProperties) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.CurrentAppProperties);
+        }
+
+        if (CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise) {
+          return CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise;
+        }
+
+        try {
+          var globalContext = Xrm.Utility && Xrm.Utility.getGlobalContext ? Xrm.Utility.getGlobalContext() : null;
+          if (!globalContext || !globalContext.getCurrentAppProperties) {
+            return Promise.resolve(null);
+          }
+
+          CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = globalContext.getCurrentAppProperties().then(
+            function (appProperties) {
+              CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = null;
+              CrmPowerPane.RuntimeCache.CurrentAppProperties = appProperties || null;
+              return CrmPowerPane.RuntimeCache.CurrentAppProperties;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
+
+      getCurrentAppId: function () {
+        return this.getCurrentAppProperties().then(function (appProperties) {
+          if (appProperties && appProperties.appId) return appProperties.appId;
+
+          try {
+            var appUrl = appProperties && appProperties.url ? appProperties.url : null;
+            if (!appUrl) return null;
+            var parsed = new URL(appUrl, window.location.origin);
+            return parsed.searchParams.get("appid");
+          } catch (e) {
+            return null;
+          }
+        });
+      },
+
+      getCurrentEnvironmentId: function () {
+        if (CrmPowerPane.RuntimeCache.CurrentEnvironmentId) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.CurrentEnvironmentId);
+        }
+
+        if (CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise) {
+          return CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise;
+        }
+
+        try {
+          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+          var endpoint =
+            clientUrl +
+            "/api/data/v9.0/RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')";
+
+          CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = this.fetchJson(endpoint).then(
+            function (responsePayload) {
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = null;
+              var environmentId =
+                responsePayload && responsePayload.Detail ? responsePayload.Detail.EnvironmentId : null;
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentId = environmentId || null;
+              return CrmPowerPane.RuntimeCache.CurrentEnvironmentId;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
+
+      getDefaultSolutionId: function () {
+        if (CrmPowerPane.RuntimeCache.DefaultSolutionId) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.DefaultSolutionId);
+        }
+
+        if (CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise) {
+          return CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise;
+        }
+
+        try {
+          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+          var endpoint =
+            clientUrl + "/api/data/v9.0/solutions?$select=solutionid&$filter=uniquename eq 'Default'&$top=1";
+
+          CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = this.fetchJson(endpoint).then(
+            function (responsePayload) {
+              CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = null;
+              var solutionEntries = responsePayload && responsePayload.value ? responsePayload.value : [];
+              var solutionId =
+                solutionEntries.length > 0 && solutionEntries[0] && solutionEntries[0].solutionid
+                  ? solutionEntries[0].solutionid
+                  : null;
+
+              CrmPowerPane.RuntimeCache.DefaultSolutionId = solutionId || null;
+              return CrmPowerPane.RuntimeCache.DefaultSolutionId;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
     },
 
     RegisterjQueryExtensions: function () {
@@ -657,6 +984,7 @@ $(function () {
       });
 
       CrmPowerPane.ThemeSelector.RegisterEvents();
+      CrmPowerPane.LayoutSelector.RegisterEvents();
 
       // Toggle pane
       $(document).on("click", "#crm-power-pane-button", function (e) {
@@ -681,7 +1009,7 @@ $(function () {
       $("#crm-power-pane-popup").on("click", "a.crm-power-pane-lookup-url", function (e) {
         e.preventDefault();
         var url = $(this).data("url");
-        if (url) window.open(url, "_blank");
+        if (url) CrmPowerPane.Utils.openInNewTab(url);
       });
 
       // Copy button inside popup (modern clipboard w/ fallback)
@@ -785,7 +1113,7 @@ $(function () {
             } else if (Xrm.Navigation && Xrm.Navigation.openUrl) {
               Xrm.Navigation.openUrl(recordPropertiesUrl, options);
             } else {
-              window.open(recordPropertiesUrl, "_blank");
+              CrmPowerPane.Utils.openInNewTab(recordPropertiesUrl);
             }
           }
         } catch (e) {
@@ -809,7 +1137,7 @@ $(function () {
                 linkProps.push("?etn=" + params.entityname.value.toLowerCase());
                 linkProps.push("&id=" + params.recordid.value);
                 linkProps.push("&pagetype=entityrecord");
-                window.open(linkProps.join(""), "_blank");
+                CrmPowerPane.Utils.openInNewTab(linkProps.join(""));
               } else {
                 CrmPowerPane.UI.ShowNotification(
                   "Entity name and record guid are required. Please fill them and try again.",
@@ -852,7 +1180,7 @@ $(function () {
             }
           }
 
-          window.open(advancedFindUrl.toString(), "_blank");
+          CrmPowerPane.Utils.openInNewTab(advancedFindUrl.toString());
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("Unable to open Advanced Find.", "error");
         }
@@ -1199,7 +1527,7 @@ $(function () {
                     "&id=" +
                     attribute.id +
                     "&pagetype=entityrecord";
-                  window.open(url, "_blank");
+                  CrmPowerPane.Utils.openInNewTab(url);
                 } catch (e) {
                   /* ignore */
                 }
@@ -1661,7 +1989,7 @@ $(function () {
             "&pagetype=entityrecord&extraqs=?" +
             encodeURIComponent(collectedFields.join("&"));
 
-          window.open(createUrl, "_blank", "location=no,menubar=no,status=no,toolbar=no", false);
+          CrmPowerPane.Utils.openInNewWindow(createUrl, "location=no,menubar=no,status=no,toolbar=no");
         } catch (e) {
           CrmPowerPane.Errors.WrongPageWarning();
         }
@@ -1753,7 +2081,7 @@ $(function () {
                     : null,
               },
             ],
-            function (popupObj) {
+            async function (popupObj) {
               var entityDetail = "";
               var entityName = popupObj.Parameters.entityname.value;
 
@@ -1763,8 +2091,18 @@ $(function () {
                 entityDetail = "&def_category=" + entitiesCategoryCode + "&def_type=" + entityTypeCode;
               }
 
-              var defaultSolutionId = "{FD140AAF-4DF4-11DD-BD17-0019B9312238}";
-              window.open(Xrm.Page.context.getClientUrl() + "/tools/solution/edit.aspx?id=" + defaultSolutionId + entityDetail);
+              var defaultSolutionId = await CrmPowerPane.Utils.getDefaultSolutionId();
+              if (!defaultSolutionId) {
+                CrmPowerPane.UI.ShowNotification("Unable to determine a solution for opening the entity editor.", "error");
+                return;
+              }
+
+              CrmPowerPane.Utils.openInNewTab(
+                Xrm.Page.context.getClientUrl() +
+                  "/tools/solution/edit.aspx?id=" +
+                  encodeURIComponent(defaultSolutionId) +
+                  entityDetail
+              );
             }
           );
         } catch (e) {
@@ -1773,11 +2111,23 @@ $(function () {
       });
 
       $("#solutions").on("click", function () {
-        window.open(Xrm.Page.context.getClientUrl() + "/tools/Solution/home_solution.aspx?etc=7100", "_blank");
+        if (CrmPowerPane.Utils.canNotExecute(false)) return;
+
+        try {
+          CrmPowerPane.Utils.openInNewTab(Xrm.Page.context.getClientUrl() + "/tools/Solution/home_solution.aspx?etc=7100");
+        } catch (e) {
+          CrmPowerPane.UI.ShowNotification("Unable to open Solutions in this context.", "warning");
+        }
       });
 
       $("#crm-diagnostics").on("click", function () {
-        window.open(Xrm.Page.context.getClientUrl() + "/tools/diagnostics/diag.aspx", "_blank");
+        if (CrmPowerPane.Utils.canNotExecute(false)) return;
+
+        try {
+          CrmPowerPane.Utils.openInNewTab(Xrm.Page.context.getClientUrl() + "/tools/diagnostics/diag.aspx");
+        } catch (e) {
+          CrmPowerPane.UI.ShowNotification("Unable to open diagnostics in this context.", "warning");
+        }
       });
 
       $("#performance-center").on("click", function () {
@@ -1803,7 +2153,7 @@ $(function () {
                 linkProps.push("?etn=" + params.entityname.value.toLowerCase());
                 linkProps.push("&newWindow=true");
                 linkProps.push("&pagetype=entityrecord");
-                window.open(linkProps.join(""), "_blank");
+                CrmPowerPane.Utils.openInNewTab(linkProps.join(""));
               } else {
                 CrmPowerPane.UI.ShowNotification("Entity name is required. Please fill it and try again.", "warning");
               }
@@ -1814,51 +2164,50 @@ $(function () {
         }
       });
 
-      $("#open-legacy-editor").on("click", function () {
+      $("#open-legacy-editor").on("click", async function () {
         try {
           var params = [Xrm.Page.context.getClientUrl() + "/main.aspx"];
           params.push("?pagetype=formeditor");
-          params.push("&appSolutionId={FD140AAF-4DF4-11DD-BD17-0019B9312238}");
+
+          var currentAppId = await CrmPowerPane.Utils.getCurrentAppId();
+          if (currentAppId) {
+            params.push("&appid=" + currentAppId);
+          }
+
           params.push("&etn=" + Xrm.Page.data.entity.getEntityName().toLowerCase());
           params.push("&extraqs=formtype=main");
           params.push("&formId=" + Xrm.Page.ui.formSelector.getCurrentItem().getId());
-          window.open(params.join(""), "_blank");
+          CrmPowerPane.Utils.openInNewTab(params.join(""));
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred while redirecting to form editor.", "error");
         }
       });
 
-      $("#open-new-editor").on("click", function () {
+      $("#open-new-editor").on("click", async function () {
         try {
-          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
-          var endpoint =
-            clientUrl +
-            "/api/data/v9.0/RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')";
+          var environmentId = await CrmPowerPane.Utils.getCurrentEnvironmentId();
+          if (!environmentId) throw new Error("EnvironmentId not found");
 
-          CrmPowerPane.Utils.fetchJson(endpoint)
-            .then(function (temp) {
-              var environmentId = temp && temp.Detail ? temp.Detail.EnvironmentId : null;
-              if (!environmentId) throw new Error("EnvironmentId not found");
+          var currentAppId = await CrmPowerPane.Utils.getCurrentAppId();
+          if (!currentAppId) throw new Error("Current app id not found");
 
-              var entityName = Xrm.Page.data.entity.getEntityName().toLowerCase();
-              var formId = Xrm.Page.ui.formSelector.getCurrentItem().getId();
+          var entityName = Xrm.Page.data.entity.getEntityName().toLowerCase();
+          var formId = Xrm.Page.ui.formSelector.getCurrentItem().getId();
 
-              var url =
-                "https://make.powerapps.com/e/" +
-                environmentId +
-                "/s/00000001-0000-0000-0001-00000000009b/entity/" +
-                entityName +
-                "/form/edit/" +
-                formId +
-                "?source=powerappsportal";
+          var url =
+            "https://make.powerapps.com/e/" +
+            environmentId +
+            "/s/" +
+            currentAppId +
+            "/entity/" +
+            entityName +
+            "/form/edit/" +
+            formId +
+            "?source=powerappsportal";
 
-              window.open(url, "_blank");
-            })
-            .catch(function (e) {
-              console.error(e);
-              CrmPowerPane.UI.ShowNotification("Failed to open Maker Portal form editor.", "error");
-            });
+          CrmPowerPane.Utils.openInNewTab(url);
         } catch (e) {
+          console.error(e);
           CrmPowerPane.UI.ShowNotification("An error occurred while redirecting to form editor.", "error");
         }
       });
@@ -1880,7 +2229,10 @@ $(function () {
               Xrm.Page.data.entity.getId() +
               ")";
             url = url.replace("{", "").replace("}", "");
-            window.open(url, "_blank");
+            CrmPowerPane.Utils.openInNewTab(url);
+          }).catch(function (e) {
+            console.error(e);
+            CrmPowerPane.UI.ShowNotification("Failed to open the Web API URL for this record.", "error");
           });
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred opening the Web API URL for this record.", "error");

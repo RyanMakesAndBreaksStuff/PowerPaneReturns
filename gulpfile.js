@@ -10,7 +10,7 @@ var gulp = require('gulp'),
 var supportedTargets = require('./build/targets');
 if (!argv.target || supportedTargets.indexOf(argv.target) === -1) {
   console.error(`Target is required. Please use one of the following targets: ${supportedTargets.join(', ')}. Example usage: gulp [task-name] --target=chrome`);
-  process.exit();
+  process.exit(1);
 }
 
 var buildVersion = argv.buildVersion;

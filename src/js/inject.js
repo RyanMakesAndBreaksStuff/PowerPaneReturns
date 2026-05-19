@@ -78,7 +78,7 @@
       const divBG = topBarEl ? window.getComputedStyle(topBarEl).backgroundColor : null;
 
       powerPaneButton.style.cssText = "float:left; width:48px; height:48px;cursor:pointer!important";
-      linkElement.style.cssText = `float:left; width:48px; height:48px;cursor:pointer!important;text-align:center;background-color:${divBG || "transparent"}`;
+      linkElement.style.cssText = `float:left; width:48px; height:48px;padding-top:5px!important;cursor:pointer!important;text-align:center;background-color:${divBG || "transparent"}`;
       linkElement.style.transition = "background-color 0.3s";
 
       if (divBG) {

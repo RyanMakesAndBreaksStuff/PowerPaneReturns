@@ -1,42 +1,43 @@
+## MAJOR REFACTOR
+
+Version 1.4.1 adds 8 additional theme choices. 4 light, 4 dark.
+
+But wait! Somehow I found a way to pack even more goodness into this release! An entirely new UI that you can flip between in real time. 
+
+Check commit notes for the boring stuff like adding testings and making user info requests async.
+
 Power Pane Returns
 
-## Huge thank you to both Onur Menal the original developer and Oğuzhan Can whose fork I used as my base. Updated Node packages, all new theme for the UI, bunch of new features. The options pane can be used to modify the displayed festures.
+Power Pane Returns is a browser extension for Microsoft Dynamics 365 that adds a quick-action pane to speed up common form and record workflows.
 
-### Dark mode is default and only option for the initial version.
+## Support Status
 
-## This extension was originally created by Onur Menal. I updated the Node.js packages to their latest versions to ensure compatibility with modern environments.
-
-Power Pane Returns is a helper tool designed to integrate with Microsoft Dynamics 365 application and allow you to manipulate forms or perform actions faster throughout the Microsoft Dynamics 365 application.
-
-_Disclaimer: This is as unsupported as it gets._
-
-## AI Assistance
-
-We used AI like a Slap Chop: fast prep, less grind, and every change still human-reviewed before merge.
+This is a community-maintained project and is not an official Microsoft product. It is provided as-is, without support guarantees.
 
 ## Privacy
 
-Power Pane Returns stores user preferences locally using the browser extension storage API.
+Power Pane Returns stores extension preferences in browser extension storage. It does not include built-in telemetry or analytics.
 
-- Stored keys:
-  - `powerPaneOptions`: action visibility preferences from the options page
-- Telemetry:
-  - No analytics or telemetry events are sent by this extension.
-- Data handling:
-  - Preferences remain on the local browser profile unless the browser syncs extension storage under user account settings.
-
-See `docs/privacy.md` for the release disclosure text.
+For full disclosure details, see `docs/privacy.md`.
 
 ## Usage
 
-Click the Power Pane Returns icon next to the Microsoft Dynamics 365 logo, and select your action.
+1. Install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/power-pane-returns/npegkibkaodgpiboiilfodmhgafegiml).
+2. Open Microsoft Dynamics 365 in Chrome.
+3. Click the Power Pane Returns icon and choose an action from the pane.
 
-- <a href="https://chromewebstore.google.com/detail/power-pane-returns/npegkibkaodgpiboiilfodmhgafegiml">Chrome Webstore Link</a>
+## Local Build (Node.js 22.x)
 
-### Coming soon
-- Add dark/light toggle to options/js
-- Open to suggestions and requests for new features. Email me or use the discussions tab
--
+1. Install Node.js `22.x`.
+2. Install dependencies:
+   - `npm ci`
+3. Build extension outputs:
+   - `npm run build-all`
+
+Build artifacts are generated in:
+- `dist/chrome`
+- `dist/firefox`
+- `dist/edge-chromium`
 
 # Contribute
 

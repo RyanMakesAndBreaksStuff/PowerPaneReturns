@@ -1,10 +1,9 @@
-.worktrees/
 /dist/
 /node_modules/
-/docs/superpowers/plans
 /.vs
-/docs/reviews
-/.agents/skills/chrome-extension-development
-/AGENTS.md
-/skills-lock.json
 /.gitignore
+/docs
+/.claude
+/tasks
+/.vscode
+/skills-lock.json
