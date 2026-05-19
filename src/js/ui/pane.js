@@ -13,6 +13,14 @@ $(function () {
       NotificationClassPrefix: "crm-power-pane-",
       NotificationTimer: null,
     },
+    RuntimeCache: {
+      CurrentAppProperties: null,
+      CurrentAppPropertiesPromise: null,
+      DefaultSolutionId: null,
+      DefaultSolutionIdPromise: null,
+      CurrentEnvironmentId: null,
+      CurrentEnvironmentIdPromise: null,
+    },
     ThemeSelector: {
       StorageKey: "crm-power-pane-theme",
       Themes: [
@@ -706,6 +714,150 @@ $(function () {
           return res.json();
         });
       },
+
+      openInNewTab: function (url) {
+        var link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      },
+
+      openInNewWindow: function (url, windowFeatures) {
+        var features = windowFeatures ? windowFeatures + ",noopener" : "noopener";
+        var openedWindow = window.open(url, "_blank", features);
+        if (openedWindow) {
+          try {
+            openedWindow.opener = null;
+          } catch (e) {
+            /* noopener is still enforced by the browser feature string. */
+          }
+        }
+      },
+
+      getCurrentAppProperties: function () {
+        if (CrmPowerPane.RuntimeCache.CurrentAppProperties) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.CurrentAppProperties);
+        }
+
+        if (CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise) {
+          return CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise;
+        }
+
+        try {
+          var globalContext = Xrm.Utility && Xrm.Utility.getGlobalContext ? Xrm.Utility.getGlobalContext() : null;
+          if (!globalContext || !globalContext.getCurrentAppProperties) {
+            return Promise.resolve(null);
+          }
+
+          CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = globalContext.getCurrentAppProperties().then(
+            function (appProperties) {
+              CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = null;
+              CrmPowerPane.RuntimeCache.CurrentAppProperties = appProperties || null;
+              return CrmPowerPane.RuntimeCache.CurrentAppProperties;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.CurrentAppPropertiesPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
+
+      getCurrentAppId: function () {
+        return this.getCurrentAppProperties().then(function (appProperties) {
+          if (appProperties && appProperties.appId) return appProperties.appId;
+
+          try {
+            var appUrl = appProperties && appProperties.url ? appProperties.url : null;
+            if (!appUrl) return null;
+            var parsed = new URL(appUrl, window.location.origin);
+            return parsed.searchParams.get("appid");
+          } catch (e) {
+            return null;
+          }
+        });
+      },
+
+      getCurrentEnvironmentId: function () {
+        if (CrmPowerPane.RuntimeCache.CurrentEnvironmentId) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.CurrentEnvironmentId);
+        }
+
+        if (CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise) {
+          return CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise;
+        }
+
+        try {
+          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+          var endpoint =
+            clientUrl +
+            "/api/data/v9.0/RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')";
+
+          CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = this.fetchJson(endpoint).then(
+            function (responsePayload) {
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = null;
+              var environmentId =
+                responsePayload && responsePayload.Detail ? responsePayload.Detail.EnvironmentId : null;
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentId = environmentId || null;
+              return CrmPowerPane.RuntimeCache.CurrentEnvironmentId;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.CurrentEnvironmentIdPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
+
+      getDefaultSolutionId: function () {
+        if (CrmPowerPane.RuntimeCache.DefaultSolutionId) {
+          return Promise.resolve(CrmPowerPane.RuntimeCache.DefaultSolutionId);
+        }
+
+        if (CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise) {
+          return CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise;
+        }
+
+        try {
+          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
+          var endpoint =
+            clientUrl + "/api/data/v9.0/solutions?$select=solutionid&$filter=uniquename eq 'Default'&$top=1";
+
+          CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = this.fetchJson(endpoint).then(
+            function (responsePayload) {
+              CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = null;
+              var solutionEntries = responsePayload && responsePayload.value ? responsePayload.value : [];
+              var solutionId =
+                solutionEntries.length > 0 && solutionEntries[0] && solutionEntries[0].solutionid
+                  ? solutionEntries[0].solutionid
+                  : null;
+
+              CrmPowerPane.RuntimeCache.DefaultSolutionId = solutionId || null;
+              return CrmPowerPane.RuntimeCache.DefaultSolutionId;
+            },
+            function () {
+              CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise = null;
+              return null;
+            }
+          );
+
+          return CrmPowerPane.RuntimeCache.DefaultSolutionIdPromise;
+        } catch (e) {
+          return Promise.resolve(null);
+        }
+      },
     },
 
     RegisterjQueryExtensions: function () {
@@ -857,7 +1009,7 @@ $(function () {
       $("#crm-power-pane-popup").on("click", "a.crm-power-pane-lookup-url", function (e) {
         e.preventDefault();
         var url = $(this).data("url");
-        if (url) window.open(url, "_blank");
+        if (url) CrmPowerPane.Utils.openInNewTab(url);
       });
 
       // Copy button inside popup (modern clipboard w/ fallback)
@@ -961,7 +1113,7 @@ $(function () {
             } else if (Xrm.Navigation && Xrm.Navigation.openUrl) {
               Xrm.Navigation.openUrl(recordPropertiesUrl, options);
             } else {
-              window.open(recordPropertiesUrl, "_blank");
+              CrmPowerPane.Utils.openInNewTab(recordPropertiesUrl);
             }
           }
         } catch (e) {
@@ -985,7 +1137,7 @@ $(function () {
                 linkProps.push("?etn=" + params.entityname.value.toLowerCase());
                 linkProps.push("&id=" + params.recordid.value);
                 linkProps.push("&pagetype=entityrecord");
-                window.open(linkProps.join(""), "_blank");
+                CrmPowerPane.Utils.openInNewTab(linkProps.join(""));
               } else {
                 CrmPowerPane.UI.ShowNotification(
                   "Entity name and record guid are required. Please fill them and try again.",
@@ -1028,7 +1180,7 @@ $(function () {
             }
           }
 
-          window.open(advancedFindUrl.toString(), "_blank");
+          CrmPowerPane.Utils.openInNewTab(advancedFindUrl.toString());
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("Unable to open Advanced Find.", "error");
         }
@@ -1375,7 +1527,7 @@ $(function () {
                     "&id=" +
                     attribute.id +
                     "&pagetype=entityrecord";
-                  window.open(url, "_blank");
+                  CrmPowerPane.Utils.openInNewTab(url);
                 } catch (e) {
                   /* ignore */
                 }
@@ -1837,7 +1989,7 @@ $(function () {
             "&pagetype=entityrecord&extraqs=?" +
             encodeURIComponent(collectedFields.join("&"));
 
-          window.open(createUrl, "_blank", "location=no,menubar=no,status=no,toolbar=no", false);
+          CrmPowerPane.Utils.openInNewWindow(createUrl, "location=no,menubar=no,status=no,toolbar=no");
         } catch (e) {
           CrmPowerPane.Errors.WrongPageWarning();
         }
@@ -1929,7 +2081,7 @@ $(function () {
                     : null,
               },
             ],
-            function (popupObj) {
+            async function (popupObj) {
               var entityDetail = "";
               var entityName = popupObj.Parameters.entityname.value;
 
@@ -1939,8 +2091,18 @@ $(function () {
                 entityDetail = "&def_category=" + entitiesCategoryCode + "&def_type=" + entityTypeCode;
               }
 
-              var defaultSolutionId = "{FD140AAF-4DF4-11DD-BD17-0019B9312238}";
-              window.open(Xrm.Page.context.getClientUrl() + "/tools/solution/edit.aspx?id=" + defaultSolutionId + entityDetail);
+              var defaultSolutionId = await CrmPowerPane.Utils.getDefaultSolutionId();
+              if (!defaultSolutionId) {
+                CrmPowerPane.UI.ShowNotification("Unable to determine a solution for opening the entity editor.", "error");
+                return;
+              }
+
+              CrmPowerPane.Utils.openInNewTab(
+                Xrm.Page.context.getClientUrl() +
+                  "/tools/solution/edit.aspx?id=" +
+                  encodeURIComponent(defaultSolutionId) +
+                  entityDetail
+              );
             }
           );
         } catch (e) {
@@ -1949,11 +2111,23 @@ $(function () {
       });
 
       $("#solutions").on("click", function () {
-        window.open(Xrm.Page.context.getClientUrl() + "/tools/Solution/home_solution.aspx?etc=7100", "_blank");
+        if (CrmPowerPane.Utils.canNotExecute(false)) return;
+
+        try {
+          CrmPowerPane.Utils.openInNewTab(Xrm.Page.context.getClientUrl() + "/tools/Solution/home_solution.aspx?etc=7100");
+        } catch (e) {
+          CrmPowerPane.UI.ShowNotification("Unable to open Solutions in this context.", "warning");
+        }
       });
 
       $("#crm-diagnostics").on("click", function () {
-        window.open(Xrm.Page.context.getClientUrl() + "/tools/diagnostics/diag.aspx", "_blank");
+        if (CrmPowerPane.Utils.canNotExecute(false)) return;
+
+        try {
+          CrmPowerPane.Utils.openInNewTab(Xrm.Page.context.getClientUrl() + "/tools/diagnostics/diag.aspx");
+        } catch (e) {
+          CrmPowerPane.UI.ShowNotification("Unable to open diagnostics in this context.", "warning");
+        }
       });
 
       $("#performance-center").on("click", function () {
@@ -1979,7 +2153,7 @@ $(function () {
                 linkProps.push("?etn=" + params.entityname.value.toLowerCase());
                 linkProps.push("&newWindow=true");
                 linkProps.push("&pagetype=entityrecord");
-                window.open(linkProps.join(""), "_blank");
+                CrmPowerPane.Utils.openInNewTab(linkProps.join(""));
               } else {
                 CrmPowerPane.UI.ShowNotification("Entity name is required. Please fill it and try again.", "warning");
               }
@@ -1990,51 +2164,50 @@ $(function () {
         }
       });
 
-      $("#open-legacy-editor").on("click", function () {
+      $("#open-legacy-editor").on("click", async function () {
         try {
           var params = [Xrm.Page.context.getClientUrl() + "/main.aspx"];
           params.push("?pagetype=formeditor");
-          params.push("&appSolutionId={FD140AAF-4DF4-11DD-BD17-0019B9312238}");
+
+          var currentAppId = await CrmPowerPane.Utils.getCurrentAppId();
+          if (currentAppId) {
+            params.push("&appid=" + currentAppId);
+          }
+
           params.push("&etn=" + Xrm.Page.data.entity.getEntityName().toLowerCase());
           params.push("&extraqs=formtype=main");
           params.push("&formId=" + Xrm.Page.ui.formSelector.getCurrentItem().getId());
-          window.open(params.join(""), "_blank");
+          CrmPowerPane.Utils.openInNewTab(params.join(""));
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred while redirecting to form editor.", "error");
         }
       });
 
-      $("#open-new-editor").on("click", function () {
+      $("#open-new-editor").on("click", async function () {
         try {
-          var clientUrl = Xrm.Utility.getGlobalContext().getClientUrl();
-          var endpoint =
-            clientUrl +
-            "/api/data/v9.0/RetrieveCurrentOrganization(AccessType=Microsoft.Dynamics.CRM.EndpointAccessType'Default')";
+          var environmentId = await CrmPowerPane.Utils.getCurrentEnvironmentId();
+          if (!environmentId) throw new Error("EnvironmentId not found");
 
-          CrmPowerPane.Utils.fetchJson(endpoint)
-            .then(function (temp) {
-              var environmentId = temp && temp.Detail ? temp.Detail.EnvironmentId : null;
-              if (!environmentId) throw new Error("EnvironmentId not found");
+          var currentAppId = await CrmPowerPane.Utils.getCurrentAppId();
+          if (!currentAppId) throw new Error("Current app id not found");
 
-              var entityName = Xrm.Page.data.entity.getEntityName().toLowerCase();
-              var formId = Xrm.Page.ui.formSelector.getCurrentItem().getId();
+          var entityName = Xrm.Page.data.entity.getEntityName().toLowerCase();
+          var formId = Xrm.Page.ui.formSelector.getCurrentItem().getId();
 
-              var url =
-                "https://make.powerapps.com/e/" +
-                environmentId +
-                "/s/00000001-0000-0000-0001-00000000009b/entity/" +
-                entityName +
-                "/form/edit/" +
-                formId +
-                "?source=powerappsportal";
+          var url =
+            "https://make.powerapps.com/e/" +
+            environmentId +
+            "/s/" +
+            currentAppId +
+            "/entity/" +
+            entityName +
+            "/form/edit/" +
+            formId +
+            "?source=powerappsportal";
 
-              window.open(url, "_blank");
-            })
-            .catch(function (e) {
-              console.error(e);
-              CrmPowerPane.UI.ShowNotification("Failed to open Maker Portal form editor.", "error");
-            });
+          CrmPowerPane.Utils.openInNewTab(url);
         } catch (e) {
+          console.error(e);
           CrmPowerPane.UI.ShowNotification("An error occurred while redirecting to form editor.", "error");
         }
       });
@@ -2056,7 +2229,10 @@ $(function () {
               Xrm.Page.data.entity.getId() +
               ")";
             url = url.replace("{", "").replace("}", "");
-            window.open(url, "_blank");
+            CrmPowerPane.Utils.openInNewTab(url);
+          }).catch(function (e) {
+            console.error(e);
+            CrmPowerPane.UI.ShowNotification("Failed to open the Web API URL for this record.", "error");
           });
         } catch (e) {
           CrmPowerPane.UI.ShowNotification("An error occurred opening the Web API URL for this record.", "error");

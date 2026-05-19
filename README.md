@@ -1,3 +1,11 @@
+## MAJOR REFACTOR
+
+Version 1.4.1 adds 8 additional theme choices. 4 light, 4 dark.
+
+But wait! Somehow I found a way to pack even more goodness into this release! An entirely new UI that you can flip between in real time. 
+
+Check commit notes for the boring stuff like adding testings and making user info requests async.
+
 Power Pane Returns
 
 Power Pane Returns is a browser extension for Microsoft Dynamics 365 that adds a quick-action pane to speed up common form and record workflows.

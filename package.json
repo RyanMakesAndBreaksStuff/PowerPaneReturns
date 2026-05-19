@@ -1,7 +1,7 @@
 {
   "name": "power-pane-returns",
-  "version": "1.4.0",
-  "description": "Power Pane quickly became a favorite among CRM users for its ability to streamline workflows and improve productivity. This updated version, 'Strikes Back' against lesser extensions who foolishly thought to usurp the throne. No hidden data collection, just pure CRM goodness. UI/UX refactor adding multiple dark/light themes and an alternate display option",
+  "version": "1.4.1",
+  "description": "Power Pane Is A Microsoft Dynamvcs CRM/Dataverse Utility Tool. This updated version, 'Strikes Back' against lesser extensions who foolishly thought to usurp the throne after it was delisted. No hidden data collection, just pure CRM goodness. Version 1.4.1 introduces a MAJOR UI/UX refactor adding multiple dark/light themes and alternative UI.",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "build": "gulp",
@@ -10,7 +10,7 @@
     "build-edge-chromium": "npm run build -- --target=edge-chromium",
     "build-all": "node ./build/all"
   },
-  "author": "Onur Menal, Oguzhan Can, Ryan Rettinger",
+  "author": "Ryan Rettinger, Onur Menal, Oguzhan Can",
   "license": "ISC",
   "devDependencies": {
     "gulp": "^5.0.1",
